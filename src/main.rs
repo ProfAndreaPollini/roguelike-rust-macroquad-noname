@@ -19,8 +19,9 @@ async fn main() {
     let mut player = Player::new(&texture_manager);
     let mut action_manager = ActionHandler::new();
 
-    let mut map = Map::new(1000, 1000);
-    map.add_tile(10, 10, Tile::new());
+    let mut map = Map::generate(100, 100);
+
+    // map.add_tile(10, 10, Tile::new());
 
     if let Some(tile) = map.tile_at(11, 10) {
         println!("tile: {:?}", tile);
@@ -38,10 +39,11 @@ async fn main() {
         draw_circle(screen_width() - 30.0, screen_height() - 30.0, 15.0, YELLOW);
 
         draw_text("IT WORKS1!", 20.0, 20.0, 30.0, DARKGRAY);
-
+        map.draw(&texture_manager);
         player.handle_input(&mut action_manager);
         action_manager.handle_actions(&mut player);
         player.draw();
+
         next_frame().await
     }
 }
