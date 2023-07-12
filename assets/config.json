@@ -1,0 +1,20 @@
+{
+    "sprites": {
+        "idle": {
+            "row": 17,
+            "col": 0
+        },
+        "floor": {
+            "row": 0,
+            "col": 0
+        },
+        "wall": {
+            "row": 2,
+            "col": 2
+        },
+        "test": {
+            "row": 3,
+            "col": 0
+        }
+    }
+}
