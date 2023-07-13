@@ -4,7 +4,7 @@ pub enum Visibility {
     Visible(String),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CellType {
     Floor,
     Wall,
@@ -13,9 +13,13 @@ pub enum CellType {
 
 #[derive(Debug, Clone)]
 pub struct Tile {
-    pub(crate) visibility: Visibility,
+    visible: bool,
     // transparency: Transparency,
     pub(crate) cell_type: CellType,
+    visible_sprite_name: String,
+    explored_sprite_name: String,
+    explored: bool,
+    opaque: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -25,11 +29,44 @@ pub enum Transparency {
 }
 
 impl Tile {
-    pub fn new(sprite_name: String) -> Self {
+    pub fn new(visible_sprite_name: String, explored_sprite_name: String) -> Self {
         Self {
-            visibility: Visibility::Visible(sprite_name),
+            visible_sprite_name,
+            explored_sprite_name,
             ..Default::default()
         }
+    }
+
+    pub fn visible(&self) -> bool {
+        self.visible
+    }
+
+    pub fn visible_sprite_name(&self) -> &str {
+        self.visible_sprite_name.as_ref()
+    }
+
+    pub fn explored_sprite_name(&self) -> &str {
+        self.explored_sprite_name.as_ref()
+    }
+
+    pub fn explored(&self) -> bool {
+        self.explored
+    }
+
+    pub fn set_visible(&mut self, visible: bool) {
+        self.visible = visible;
+    }
+
+    pub fn set_explored(&mut self, explored: bool) {
+        self.explored = explored;
+    }
+
+    pub fn set_opaque(&mut self, opaque: bool) {
+        self.opaque = opaque;
+    }
+
+    pub fn opaque(&self) -> bool {
+        self.opaque
     }
 }
 
@@ -37,8 +74,12 @@ impl Default for Tile {
     fn default() -> Self {
         Self {
             // transparency: Transparency::Transparent,
-            visibility: Visibility::Hidden("none".to_string()),
+            visible: false,
+            visible_sprite_name: String::from("none"),
+            explored_sprite_name: String::from("none"),
+            explored: false,
             cell_type: CellType::None,
+            opaque: false,
         }
     }
 }

@@ -17,7 +17,7 @@ impl<'a> MapBuilderAlgorithm<'a> for RandomWalkBuilder {
         let mut visited = vec![pos];
         let directions = ["up", "down", "left", "right"];
         // generate a random walk
-        for _ in 0..100 {
+        while visited.len() < 100 {
             let mut next_pos = current_pos;
 
             // randomly choose a direction
@@ -36,16 +36,17 @@ impl<'a> MapBuilderAlgorithm<'a> for RandomWalkBuilder {
 
             current_pos = next_pos;
         }
-        println!("visited: {:?}", visited);
+        // println!("visited: {:?}", visited);
         //map_builder.map_tiles.tiles = visited.clone();
         visited.iter().for_each(|pos| {
-            let mut tile = crate::engine::map::tile::Tile::new("test".to_string());
+            let mut tile =
+                crate::engine::map::tile::Tile::new("test".to_string(), "test".to_string());
             tile.cell_type = crate::engine::map::tile::CellType::Floor;
             map_builder
                 .map_tiles
                 .add_tile(pos.x as u16, pos.y as u16, tile);
         });
-        println!("map_tiles: {:?}", map_builder.map_tiles.tiles);
+        // println!("map_tiles: {:?}", map_builder.map_tiles.tiles);
 
         map_builder
     }

@@ -6,14 +6,13 @@ pub mod tile;
 
 use tile::Tile;
 
-use macroquad::{prelude::WHITE, texture::draw_texture_ex};
 use noise::{NoiseFn, Perlin, Seedable};
 
 use zorder::{coord_of, index_of};
 
 use crate::engine::core::Entity;
 
-use self::tile::{CellType, Visibility};
+use self::tile::CellType;
 
 #[derive(Debug, Clone)]
 pub struct MapTiles {
@@ -42,6 +41,10 @@ impl MapTiles {
 
     pub fn tile_at(&self, x: u16, y: u16) -> Option<&Tile> {
         self.tiles.get(&index_of((x, y)))
+    }
+
+    pub fn tile_at_mut(&mut self, x: u16, y: u16) -> Option<&mut Tile> {
+        self.tiles.get_mut(&index_of((x, y)))
     }
 }
 
@@ -75,10 +78,10 @@ impl Map {
         for x in 0..width {
             for y in 0..height {
                 let tile = if noise(x as f64 / 2., y as f64 / 2.).abs() > 0. {
-                    Tile::new("floor".to_string())
+                    Tile::new("floor".to_string(), "none".to_string())
                     // tile.add_sprite("floor", 2, 2);
                 } else {
-                    let mut t = Tile::new("wall".to_string());
+                    let mut t = Tile::new("wall".to_string(), "none".to_string());
                     t.cell_type = CellType::Wall;
                     t
                 };
@@ -90,15 +93,72 @@ impl Map {
         map
     }
 
+    pub fn set_tile_visible(&mut self, x: u16, y: u16, visible: bool) {
+        let binding = self.tiles.tile_at_mut(x, y);
+        // println!("{:?}", binding);
+        // println!("{} {}", x, y);
+        let tile = match binding {
+            Some(t) => t,
+            None => return,
+        };
+
+        tile.set_visible(visible);
+        tile.set_explored(true);
+        // println!("tile = {:?}", tile);
+    }
+
+    pub fn set_all_tiles_visibility(&mut self, visible: bool) {
+        self.tiles.tiles.iter_mut().for_each(|(_, tile)| {
+            tile.set_visible(visible);
+            // tile.set_explored(true);
+        });
+    }
+
+    pub fn set_tile_range_visibility(
+        &mut self,
+        start_x: u32,
+        start_y: u32,
+        fov_size: u32,
+        visible: bool,
+    ) {
+        for x in start_x - fov_size + 1_u32..start_x + fov_size {
+            for y in start_y - fov_size + 1_u32..start_y + fov_size {
+                // print!("{} {}", x, y);
+                self.set_tile_visible(x as u16, y as u16, visible);
+            }
+        }
+        // println!("-----");
+
+        // self.tiles.tiles.iter_mut().for_each(|(_, tile)| {
+        //     tile.set_visible(visible);
+        //     // tile.set_explored(true);
+        // });
+    }
+
     pub fn draw(&self, texture_manager: &crate::engine::texture_manager::TextureManager) {
         let texture = texture_manager.texture;
         for (index, tile) in &self.tiles.tiles {
             let (x, y) = coord_of(*index);
             //texture_manager.get_sprite(&tile.visibility);
-            let sprite = match &tile.visibility {
-                Visibility::Hidden(sprite_name) => texture_manager.get_sprite(sprite_name),
-                Visibility::Visible(sprite_name) => texture_manager.get_sprite(sprite_name),
+
+            // let sprite = match &tile.visibility {
+            //     Visibility::Hidden(sprite_name) => texture_manager.get_sprite(sprite_name),
+            //     Visibility::Visible(sprite_name) => texture_manager.get_sprite(sprite_name),
+            // };
+            let sprite = if tile.visible() {
+                let s = tile.visible_sprite_name();
+                Some(texture_manager.get_sprite(s))
+            } else if tile.explored() {
+                let s = tile.explored_sprite_name();
+                Some(texture_manager.get_sprite(s))
+            } else {
+                None
             };
+
+            if sprite.is_none() {
+                continue;
+            }
+
             // draw_rectangle(
             //     x as f32 * texture_manager.cell_size * texture_manager.scale,
             //     y as f32 * texture_manager.cell_size * texture_manager.scale,
@@ -106,17 +166,45 @@ impl Map {
             //     texture_manager.cell_size * texture_manager.scale,
             //     tile.color,
             // )
-            draw_texture_ex(
-                texture,
-                x as f32 * texture_manager.cell_output_size().x,
-                y as f32 * texture_manager.cell_output_size().y,
-                WHITE,
-                macroquad::prelude::DrawTextureParams {
-                    source: Some(sprite),
-                    dest_size: Some(texture_manager.cell_output_size()),
-                    ..Default::default()
-                },
-            );
+            // draw_texture_ex(
+            //     texture,
+            //     x as f32 * texture_manager.cell_output_size().x,
+            //     y as f32 * texture_manager.cell_output_size().y,
+            //     WHITE,
+            //     macroquad::prelude::DrawTextureParams {
+            //         source: sprite,
+            //         dest_size: Some(texture_manager.cell_output_size()),
+            //         ..Default::default()
+            //     },
+            // );
+
+            // if tile.cell_type == CellType::Wall {
+            //     draw_rectangle(
+            //         x as f32 * texture_manager.cell_output_size().x,
+            //         y as f32 * texture_manager.cell_output_size().y,
+            //         texture_manager.cell_output_size().x,
+            //         texture_manager.cell_output_size().y,
+            //         macroquad::color::Color::new(1., 0., 0., 0.5),
+            //     );
+            // }
+
+            // if tile.explored() && !tile.visible() {
+            //     draw_rectangle(
+            //         x as f32 * texture_manager.cell_output_size().x,
+            //         y as f32 * texture_manager.cell_output_size().y,
+            //         texture_manager.cell_output_size().x,
+            //         texture_manager.cell_output_size().y,
+            //         macroquad::color::Color::new(0., 0., 0., 0.5),
+            //     );
+            // } else if tile.explored() && tile.visible() {
+            //     draw_rectangle(
+            //         x as f32 * texture_manager.cell_output_size().x,
+            //         y as f32 * texture_manager.cell_output_size().y,
+            //         texture_manager.cell_output_size().x,
+            //         texture_manager.cell_output_size().y,
+            //         macroquad::color::Color::new(0., 1., 0., 0.5),
+            //     );
+            // }
         }
     }
 
@@ -140,14 +228,21 @@ impl Map {
         }
 
         if let Some(tile) = self.tile_at(x as u16, y as u16) {
-            if let Visibility::Hidden(_) = tile.visibility {
-                return true;
-            }
             if let CellType::Wall = tile.cell_type {
                 return false;
             }
         }
 
         true
+    }
+
+    pub fn is_position_blocked(&self, col: u16, row: u16) -> bool {
+        if let Some(tile) = self.tile_at(col, row) {
+            if let CellType::Wall = tile.cell_type {
+                return true;
+            }
+        }
+
+        false
     }
 }

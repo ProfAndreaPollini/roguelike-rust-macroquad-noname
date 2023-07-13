@@ -38,7 +38,7 @@ async fn main() {
     let mut engine = Engine::new(texture_manager, map);
 
     loop {
-        clear_background(RED);
+        clear_background(BLACK);
 
         engine.update();
 
@@ -46,6 +46,7 @@ async fn main() {
         // map.draw(&texture_manager);
 
         engine.render();
+        engine.update_fov();
 
         next_frame().await
     }

@@ -80,7 +80,7 @@ impl TextureManager {
             let col = sprite["col"].as_u64().unwrap() as u32;
             self.add_sprite(name, row, col);
         }
-        println!("{:?}", self.sprites)
+        // println!("{:?}", self.sprites)
     }
 
     pub fn cell_output_size(&self) -> Vec2 {
