@@ -4,6 +4,7 @@ use std::collections::HashMap;
 pub mod builder;
 pub mod tile;
 
+use macroquad::{prelude::WHITE, shapes::draw_rectangle, texture::draw_texture_ex};
 use tile::Tile;
 
 use noise::{NoiseFn, Perlin, Seedable};
@@ -166,45 +167,27 @@ impl Map {
             //     texture_manager.cell_size * texture_manager.scale,
             //     tile.color,
             // )
-            // draw_texture_ex(
-            //     texture,
-            //     x as f32 * texture_manager.cell_output_size().x,
-            //     y as f32 * texture_manager.cell_output_size().y,
-            //     WHITE,
-            //     macroquad::prelude::DrawTextureParams {
-            //         source: sprite,
-            //         dest_size: Some(texture_manager.cell_output_size()),
-            //         ..Default::default()
-            //     },
-            // );
+            draw_texture_ex(
+                texture,
+                x as f32 * texture_manager.cell_output_size().x,
+                y as f32 * texture_manager.cell_output_size().y,
+                WHITE,
+                macroquad::prelude::DrawTextureParams {
+                    source: sprite,
+                    dest_size: Some(texture_manager.cell_output_size()),
+                    ..Default::default()
+                },
+            );
 
-            // if tile.cell_type == CellType::Wall {
-            //     draw_rectangle(
-            //         x as f32 * texture_manager.cell_output_size().x,
-            //         y as f32 * texture_manager.cell_output_size().y,
-            //         texture_manager.cell_output_size().x,
-            //         texture_manager.cell_output_size().y,
-            //         macroquad::color::Color::new(1., 0., 0., 0.5),
-            //     );
-            // }
-
-            // if tile.explored() && !tile.visible() {
-            //     draw_rectangle(
-            //         x as f32 * texture_manager.cell_output_size().x,
-            //         y as f32 * texture_manager.cell_output_size().y,
-            //         texture_manager.cell_output_size().x,
-            //         texture_manager.cell_output_size().y,
-            //         macroquad::color::Color::new(0., 0., 0., 0.5),
-            //     );
-            // } else if tile.explored() && tile.visible() {
-            //     draw_rectangle(
-            //         x as f32 * texture_manager.cell_output_size().x,
-            //         y as f32 * texture_manager.cell_output_size().y,
-            //         texture_manager.cell_output_size().x,
-            //         texture_manager.cell_output_size().y,
-            //         macroquad::color::Color::new(0., 1., 0., 0.5),
-            //     );
-            // }
+            if tile.explored() && !tile.visible() {
+                draw_rectangle(
+                    x as f32 * texture_manager.cell_output_size().x,
+                    y as f32 * texture_manager.cell_output_size().y,
+                    texture_manager.cell_output_size().x,
+                    texture_manager.cell_output_size().y,
+                    macroquad::color::Color::new(0., 0., 0., 0.5),
+                );
+            }
         }
     }
 

@@ -1,9 +1,13 @@
 mod actions;
 mod engine;
+mod npc;
 mod player;
 mod random_walk_builder;
+mod scenes;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use engine::core::Engine;
 
@@ -12,6 +16,10 @@ use engine::map::builder::{BasicMapBuilder, MapBuilder};
 use engine::texture_manager::TextureManager;
 use macroquad::prelude::*;
 use random_walk_builder::RandomWalkBuilder;
+use scenes::events::SceneEvent;
+use scenes::fsm::GlobalStateTransitionHandler;
+use scenes::{Scene, SceneContext};
+
 fn window_conf() -> Conf {
     Conf {
         window_title: "Window Conf".to_owned(),
@@ -35,18 +43,50 @@ async fn main() {
         .add_step(&RandomWalkBuilder::default())
         .build();
 
-    let mut engine = Engine::new(texture_manager, map);
+    let engine = Engine::new(texture_manager, map);
+
+    let mut scene_sm = nefsm::sync::StateMachine::<Scene, SceneContext, SceneEvent>::new(
+        SceneContext {
+            game: engine.clone(),
+        },
+        Some(Box::new(GlobalStateTransitionHandler {})),
+    );
+
+    let _ret = scene_sm.init(Scene::Intro);
 
     loop {
         clear_background(BLACK);
 
         engine.update();
 
-        draw_text("IT WORKS1!", 20.0, 20.0, 30.0, DARKGRAY);
         // map.draw(&texture_manager);
 
         engine.render();
         engine.update_fov();
+
+        egui_macroquad::ui(|egui_ctx| {
+            egui::Window::new("egui ❤ macroquad").show(egui_ctx, |ui| {
+                //display fps
+                ui.label(format!("FPS: {}", get_fps()));
+
+                ui.label("Test");
+            });
+        });
+
+        //get all key pressed this frame
+        let keys_pressed_this_frame = get_last_key_pressed();
+
+        println!(" key pressed{:?}", keys_pressed_this_frame);
+        if keys_pressed_this_frame.is_some() {
+            let event = SceneEvent::KeyPressed(keys_pressed_this_frame.unwrap());
+            println!("firing event {:?}", event);
+            let _ = scene_sm.process_event(&event);
+        }
+
+        let _ = scene_sm.process_event(&SceneEvent::Update);
+        let _ = scene_sm.process_event(&SceneEvent::Draw);
+
+        egui_macroquad::draw();
 
         next_frame().await
     }

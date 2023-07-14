@@ -1,24 +1,24 @@
 use std::cell::RefCell;
 
-use crate::engine::core::{Engine, Entity};
+use crate::engine::core::{Engine, EngineRepr, Entity};
 
 pub trait Performable<'a> {
-    fn perform(&self, entity: &'a RefCell<dyn Entity>, engine: &mut Engine);
+    fn perform(&self, entity: &'a RefCell<dyn Entity>, engine: &mut EngineRepr);
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Move {
     pub dx: i32,
     pub dy: i32,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Action {
     Move(Move),
 }
 
 impl<'a> Performable<'a> for Action {
-    fn perform(&self, entity: &'a RefCell<dyn Entity>, engine: &mut Engine) {
+    fn perform(&self, entity: &'a RefCell<dyn Entity>, engine: &mut EngineRepr) {
         let map = &mut engine.map;
 
         let mut binding = entity.borrow_mut();
@@ -54,6 +54,7 @@ impl<'a> Performable<'a> for Action {
     }
 }
 
+#[derive(Debug)]
 pub struct ActionHandler {
     actions: Vec<Action>,
 }
@@ -62,7 +63,7 @@ pub trait Movable {
     fn move_by(&mut self, x: i32, y: i32);
 }
 
-pub fn handle_actions(engine: &mut Engine) {
+pub fn handle_actions(engine: &mut EngineRepr) {
     // let action_handler = engine.action_handler;
     // let entity = Box::new(engine.player().clone()) as Box<dyn Entity>;
     let actions = engine.action_handler.actions.clone();

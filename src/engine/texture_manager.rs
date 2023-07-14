@@ -9,6 +9,7 @@ use macroquad::{
 
 /// A struct that manages a texture atlas and provides methods for accessing individual sprites.
 /// A struct that manages a texture atlas and provides methods for accessing individual sprites.
+#[derive(Debug)]
 pub struct TextureManager {
     /// The texture atlas managed by the texture manager.
     pub texture: Texture2D,
