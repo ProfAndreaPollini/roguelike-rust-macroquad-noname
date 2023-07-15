@@ -9,7 +9,7 @@ impl FsmEnum<Scene, SceneContext, SceneEvent> for Scene {
     fn create(enum_value: &Scene) -> Box<dyn Stateful<Scene, SceneContext, SceneEvent> + Send> {
         match enum_value {
             Scene::Intro => Box::new(IntroScene {}),
-            Scene::Game => Box::new(GameScene {}),
+            Scene::Game => Box::new(GameScene::new()),
             Scene::End => Box::new(EndScene {}),
         }
     }

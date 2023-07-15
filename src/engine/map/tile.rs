@@ -1,3 +1,5 @@
+use crate::engine::items::Item;
+
 #[derive(Debug, Clone)]
 pub enum Visibility {
     Hidden(String),
@@ -20,6 +22,7 @@ pub struct Tile {
     explored_sprite_name: String,
     explored: bool,
     opaque: bool,
+    items: Vec<Item>,
 }
 
 #[derive(Debug, Clone)]
@@ -68,6 +71,14 @@ impl Tile {
     pub fn opaque(&self) -> bool {
         self.opaque
     }
+
+    pub fn items(&self) -> &Vec<Item> {
+        &self.items
+    }
+
+    pub fn add_item(&mut self, item: Item) {
+        self.items.push(item);
+    }
 }
 
 impl Default for Tile {
@@ -80,6 +91,7 @@ impl Default for Tile {
             explored: false,
             cell_type: CellType::None,
             opaque: false,
+            items: Vec::new(),
         }
     }
 }

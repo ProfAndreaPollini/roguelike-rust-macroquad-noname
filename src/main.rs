@@ -15,10 +15,13 @@ use engine::map::builder::{BasicMapBuilder, MapBuilder};
 
 use engine::texture_manager::TextureManager;
 use macroquad::prelude::*;
+use macroquad::ui::widgets::Button;
 use random_walk_builder::RandomWalkBuilder;
 use scenes::events::SceneEvent;
 use scenes::fsm::GlobalStateTransitionHandler;
 use scenes::{Scene, SceneContext};
+
+use crate::scenes::events::MouseEvent;
 
 fn window_conf() -> Conf {
     Conf {
@@ -80,6 +83,25 @@ async fn main() {
         if keys_pressed_this_frame.is_some() {
             let event = SceneEvent::KeyPressed(keys_pressed_this_frame.unwrap());
             println!("firing event {:?}", event);
+            let _ = scene_sm.process_event(&event);
+        }
+
+        // process mouse events
+        let mut mouse_events: Vec<MouseEvent> = vec![];
+
+        for btn in [MouseButton::Left, MouseButton::Right] {
+            if is_mouse_button_pressed(btn) {
+                mouse_events.push(MouseEvent::Pressed(btn));
+            }
+
+            if is_mouse_button_released(btn) {
+                mouse_events.push(MouseEvent::Released(btn));
+            }
+        }
+
+        if !mouse_events.is_empty() {
+            let event = SceneEvent::Mouse(mouse_events);
+            println!("firing mouse event {:?}", event);
             let _ = scene_sm.process_event(&event);
         }
 

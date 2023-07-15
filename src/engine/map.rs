@@ -65,34 +65,39 @@ impl Map {
         }
     }
 
-    pub fn generate(width: u32, height: u32) -> Self {
-        let mut map = Self::new(width, height);
+    // pub fn generate(width: u32, height: u32) -> Self {
+    //     let mut map = Self::new(width, height);
 
-        let perlin = Perlin::new(1);
-        let mut seed = 0;
-        let mut noise = |x, y| {
-            seed += 1;
-            perlin.set_seed(seed);
-            perlin.get([x, y])
-        };
+    //     let perlin = Perlin::new(1);
+    //     let mut seed = 0;
+    //     let mut noise = |x, y| {
+    //         seed += 1;
+    //         perlin.set_seed(seed);
+    //         perlin.get([x, y])
+    //     };
 
-        for x in 0..width {
-            for y in 0..height {
-                let tile = if noise(x as f64 / 2., y as f64 / 2.).abs() > 0. {
-                    Tile::new("floor".to_string(), "none".to_string())
-                    // tile.add_sprite("floor", 2, 2);
-                } else {
-                    let mut t = Tile::new("wall".to_string(), "none".to_string());
-                    t.cell_type = CellType::Wall;
-                    t
-                };
+    //     for x in 0..width {
+    //         for y in 0..height {
+    //             let tile = if noise(x as f64 / 2., y as f64 / 2.).abs() > 0. {
+    //                 let mut t = Tile::new("floor".to_string(), "none".to_string());
+    //                 t.add_item(super::items::Item::Gold(super::items::Gold {
+    //                     value: 10,
+    //                     sprite_name: "gold".to_string(),
+    //                 }));
+    //                 t
+    //                 // tile.add_sprite("floor", 2, 2);
+    //             } else {
+    //                 let mut t = Tile::new("wall".to_string(), "none".to_string());
+    //                 t.cell_type = CellType::Wall;
+    //                 t
+    //             };
 
-                map.add_tile(x as u16, y as u16, tile);
-            }
-        }
+    //             map.add_tile(x as u16, y as u16, tile);
+    //         }
+    //     }
 
-        map
-    }
+    //     map
+    // }
 
     pub fn set_tile_visible(&mut self, x: u16, y: u16, visible: bool) {
         let binding = self.tiles.tile_at_mut(x, y);
@@ -140,12 +145,7 @@ impl Map {
         let texture = texture_manager.texture;
         for (index, tile) in &self.tiles.tiles {
             let (x, y) = coord_of(*index);
-            //texture_manager.get_sprite(&tile.visibility);
 
-            // let sprite = match &tile.visibility {
-            //     Visibility::Hidden(sprite_name) => texture_manager.get_sprite(sprite_name),
-            //     Visibility::Visible(sprite_name) => texture_manager.get_sprite(sprite_name),
-            // };
             let sprite = if tile.visible() {
                 let s = tile.visible_sprite_name();
                 Some(texture_manager.get_sprite(s))
@@ -179,6 +179,23 @@ impl Map {
                 },
             );
 
+            if !tile.items().is_empty() {
+                let item = tile.items().first().unwrap();
+                let sprite = texture_manager.get_sprite(item.sprite_name());
+                draw_texture_ex(
+                    texture,
+                    x as f32 * texture_manager.cell_output_size().x,
+                    y as f32 * texture_manager.cell_output_size().y,
+                    WHITE,
+                    macroquad::prelude::DrawTextureParams {
+                        source: Some(sprite),
+                        dest_size: Some(texture_manager.cell_output_size()),
+                        ..Default::default()
+                    },
+                );
+            }
+
+            // explored but not visible overlay
             if tile.explored() && !tile.visible() {
                 draw_rectangle(
                     x as f32 * texture_manager.cell_output_size().x,
