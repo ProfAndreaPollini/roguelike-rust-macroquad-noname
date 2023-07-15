@@ -1,4 +1,7 @@
-use crate::engine::map::builder::MapBuilderAlgorithm;
+use crate::engine::{
+    items::{Gold, Item},
+    map::builder::MapBuilderAlgorithm,
+};
 use macroquad::prelude::Vec2;
 use rand::prelude::*;
 #[derive(Debug, Clone, Default)]
@@ -42,6 +45,10 @@ impl<'a> MapBuilderAlgorithm<'a> for RandomWalkBuilder {
             let mut tile =
                 crate::engine::map::tile::Tile::new("test".to_string(), "test".to_string());
             tile.cell_type = crate::engine::map::tile::CellType::Floor;
+            tile.add_item(Item::Gold(Gold {
+                value: 1,
+                sprite_name: "gold".to_string(),
+            }));
             map_builder
                 .map_tiles
                 .add_tile(pos.x as u16, pos.y as u16, tile);
