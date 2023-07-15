@@ -1,5 +1,5 @@
 use macroquad::prelude::{Rect, Vec2};
-use zorder::{coord_of, index_of};
+use zorder::index_of;
 
 use super::map::{tile::Tile, Map};
 

@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use macroquad::prelude::Vec2;
 
-use crate::engine::core::{Engine, EngineRepr, Entity};
+use crate::engine::core::{EngineRepr, Entity};
 
 pub trait Performable<'a> {
     fn perform(&self, entity: &'a RefCell<dyn Entity>, engine: &mut EngineRepr);
@@ -56,12 +56,6 @@ impl<'a> Performable<'a> for Action {
                 if viewport_center.distance(desired_pos) > 5.0 {
                     engine.viewport.move_to(desired_pos.x, desired_pos.y);
                 }
-                // engine.viewport.move_to(*e.x() as f32, *e.y() as f32);
-
-                // let x = *e.x();
-                // let y = *e.y();
-                // // print current position
-                // // println!("Current position: {}, {}", x, y);
             }
         }
     }

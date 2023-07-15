@@ -5,9 +5,7 @@ mod player;
 mod random_walk_builder;
 mod scenes;
 
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use engine::core::Engine;
 
@@ -15,7 +13,7 @@ use engine::map::builder::{BasicMapBuilder, MapBuilder};
 
 use engine::texture_manager::TextureManager;
 use macroquad::prelude::*;
-use macroquad::ui::widgets::Button;
+
 use random_walk_builder::RandomWalkBuilder;
 use scenes::events::SceneEvent;
 use scenes::fsm::GlobalStateTransitionHandler;
