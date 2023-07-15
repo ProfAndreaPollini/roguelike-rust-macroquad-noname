@@ -1,11 +1,15 @@
 use macroquad::{
-    prelude::{is_key_pressed, KeyCode, WHITE},
+    prelude::{is_key_pressed, KeyCode, Vec2, WHITE},
     texture::draw_texture_ex,
 };
 
 use crate::{
     actions::{ActionHandler, Move},
-    engine::{core::Entity, texture_manager::TextureManager},
+    engine::{
+        core::Entity,
+        texture_manager::TextureManager,
+        viewport::{self, Viewport},
+    },
 };
 
 #[derive(Debug, Clone)]
@@ -60,16 +64,22 @@ impl Player {
         }
     }
 
-    pub fn draw(&self, texture_manager: &TextureManager) {
+    pub fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {
         let texture = texture_manager.texture;
         let idle_sprite = texture_manager.get_sprite("idle");
 
         // println!("idle_sprite: {:?}", idle_sprite);
+        let center = -1.0 * viewport.get().center();
+        let offset = Vec2::new(
+            10., //center.x * texture_manager.cell_output_size().x,
+            10., //center.y * texture_manager.cell_output_size().y,
+        );
+        let center = center + offset;
 
         draw_texture_ex(
             texture,
-            self.x as f32 * texture_manager.cell_output_size().x,
-            self.y as f32 * texture_manager.cell_output_size().y,
+            (self.x as f32 + center.x) * texture_manager.cell_output_size().x,
+            (self.y as f32 + center.y) * texture_manager.cell_output_size().y,
             WHITE,
             macroquad::prelude::DrawTextureParams {
                 source: Some(idle_sprite),

@@ -12,7 +12,7 @@ use macroquad::prelude::IVec2;
 use std::cell::{Ref, RefCell};
 use std::rc::Rc;
 
-use super::{fov::compute_fov, texture_manager::TextureManager};
+use super::{fov::compute_fov, texture_manager::TextureManager, viewport::Viewport};
 
 pub trait Drawable {
     fn draw(&self, texture_manager: &TextureManager);
@@ -84,6 +84,7 @@ pub struct EngineRepr {
     pub action_handler: ActionHandler,
     pub map: Map,
     pub npc_list: Vec<NPC>,
+    pub viewport: Viewport,
     // current_entity: Box<dyn Entity>,
 }
 
@@ -101,6 +102,7 @@ impl EngineRepr {
             action_handler,
             map,
             npc_list: vec![npc],
+            viewport: Viewport::new(10.0, 10.0, 40.0, 40.0),
         }
     }
 
@@ -122,8 +124,10 @@ impl EngineRepr {
     }
 
     pub fn render(&self) {
-        self.map.draw(&self.texture_manager);
-        self.player.borrow().draw(&self.texture_manager);
+        self.map.draw(&self.texture_manager, &self.viewport);
+        self.player
+            .borrow()
+            .draw(&self.texture_manager, &self.viewport);
         self.npc_list
             .iter()
             .for_each(|npc| npc.draw(&self.texture_manager));
@@ -131,13 +135,6 @@ impl EngineRepr {
 
     pub fn update_fov(&mut self) {
         let fov_distance: i32 = 5;
-
-        // self.map.set_tile_range_visibility(
-        //     self.player.borrow().x as u32,
-        //     self.player.borrow().y as u32,
-        //     FOV_DISTANCE as u32,
-        //     false,
-        // );
 
         self.map.set_all_tiles_visibility(false);
 

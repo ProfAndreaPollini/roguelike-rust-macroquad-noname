@@ -1,5 +1,7 @@
 use std::cell::RefCell;
 
+use macroquad::prelude::Vec2;
+
 use crate::engine::core::{Engine, EngineRepr, Entity};
 
 pub trait Performable<'a> {
@@ -31,6 +33,8 @@ impl<'a> Performable<'a> for Action {
                 let desired_x = *e.x() + x;
                 let desired_y = *e.y() + y;
 
+                let current_pos = Vec2::new(*e.x() as f32, *e.y() as f32);
+
                 // println!("Desired position: {}, {}", desired_x, desired_y);
 
                 // check if position is valid
@@ -44,6 +48,15 @@ impl<'a> Performable<'a> for Action {
                 //e.set_x(desired_x);
                 *(e.x()) += x;
                 *(e.y()) += y;
+
+                let viewport_center = engine.viewport.get().center();
+                let desired_pos =
+                    Vec2::new(desired_x as f32, desired_y as f32) * 0.3 + current_pos * 0.7;
+
+                if viewport_center.distance(desired_pos) > 5.0 {
+                    engine.viewport.move_to(desired_pos.x, desired_pos.y);
+                }
+                // engine.viewport.move_to(*e.x() as f32, *e.y() as f32);
 
                 // let x = *e.x();
                 // let y = *e.y();

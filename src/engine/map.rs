@@ -4,16 +4,20 @@ use std::collections::HashMap;
 pub mod builder;
 pub mod tile;
 
-use macroquad::{prelude::WHITE, shapes::draw_rectangle, texture::draw_texture_ex};
+use macroquad::{
+    prelude::{Vec2, WHITE},
+    shapes::draw_rectangle,
+    texture::draw_texture_ex,
+};
 use tile::Tile;
-
-use noise::{NoiseFn, Perlin, Seedable};
 
 use zorder::{coord_of, index_of};
 
 use crate::engine::core::Entity;
 
 use self::tile::CellType;
+
+use super::viewport::Viewport;
 
 #[derive(Debug, Clone)]
 pub struct MapTiles {
@@ -141,10 +145,22 @@ impl Map {
         // });
     }
 
-    pub fn draw(&self, texture_manager: &crate::engine::texture_manager::TextureManager) {
+    pub fn draw(
+        &self,
+        texture_manager: &crate::engine::texture_manager::TextureManager,
+        viewport: &Viewport,
+    ) {
         let texture = texture_manager.texture;
-        for (index, tile) in &self.tiles.tiles {
-            let (x, y) = coord_of(*index);
+
+        let center = -1.0 * viewport.get().center();
+        let offset = Vec2::new(
+            10., //center.x * texture_manager.cell_output_size().x,
+            10., //center.y * texture_manager.cell_output_size().y,
+        );
+        let center = center + offset;
+        for (index, tile) in viewport.filter_tiles(self) {
+            //&self.tiles.tiles {
+            let (x, y) = coord_of(index);
 
             let sprite = if tile.visible() {
                 let s = tile.visible_sprite_name();
@@ -169,8 +185,8 @@ impl Map {
             // )
             draw_texture_ex(
                 texture,
-                x as f32 * texture_manager.cell_output_size().x,
-                y as f32 * texture_manager.cell_output_size().y,
+                (x as f32 + center.x) * texture_manager.cell_output_size().x,
+                (y as f32 + center.y) * texture_manager.cell_output_size().y,
                 WHITE,
                 macroquad::prelude::DrawTextureParams {
                     source: sprite,
@@ -184,8 +200,8 @@ impl Map {
                 let sprite = texture_manager.get_sprite(item.sprite_name());
                 draw_texture_ex(
                     texture,
-                    x as f32 * texture_manager.cell_output_size().x,
-                    y as f32 * texture_manager.cell_output_size().y,
+                    (x as f32 + center.x) * texture_manager.cell_output_size().x,
+                    (y as f32 + center.y) * texture_manager.cell_output_size().y,
                     WHITE,
                     macroquad::prelude::DrawTextureParams {
                         source: Some(sprite),
@@ -198,8 +214,8 @@ impl Map {
             // explored but not visible overlay
             if tile.explored() && !tile.visible() {
                 draw_rectangle(
-                    x as f32 * texture_manager.cell_output_size().x,
-                    y as f32 * texture_manager.cell_output_size().y,
+                    (x as f32 + center.x) * texture_manager.cell_output_size().x,
+                    (y as f32 + center.y) * texture_manager.cell_output_size().y,
                     texture_manager.cell_output_size().x,
                     texture_manager.cell_output_size().y,
                     macroquad::color::Color::new(0., 0., 0., 0.5),
