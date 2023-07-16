@@ -1,5 +1,6 @@
 use macroquad::{
     prelude::{is_key_pressed, KeyCode, Vec2, WHITE},
+    shapes::{draw_line, draw_poly_lines},
     texture::draw_texture_ex,
 };
 
@@ -69,12 +70,10 @@ impl Player {
         let idle_sprite = texture_manager.get_sprite("idle");
 
         // println!("idle_sprite: {:?}", idle_sprite);
-        let center = -1.0 * viewport.get().center();
-        let offset = Vec2::new(
-            10., //center.x * texture_manager.cell_output_size().x,
-            10., //center.y * texture_manager.cell_output_size().y,
-        );
-        let center = center + offset;
+        // let center = -1.0 * viewport.get().center();
+        // let offset = *viewport.offset();
+        // let center = center + offset;
+        let center = viewport.center();
 
         draw_texture_ex(
             texture,
@@ -87,5 +86,62 @@ impl Player {
                 ..Default::default()
             },
         );
+
+        // draw_line(
+        //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
+        //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
+        //     (viewport.offset().x + viewport.get().w + center.x)
+        //         * texture_manager.cell_output_size().x,
+        //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
+        //     10.,
+        //     macroquad::color::Color::new(1., 1., 1., 1.0),
+        // );
+        // draw_line(
+        //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
+        //     (viewport.offset().y + center.y + viewport.get().h)
+        //         * texture_manager.cell_output_size().y,
+        //     (viewport.offset().x + viewport.get().w + center.x)
+        //         * texture_manager.cell_output_size().x,
+        //     (viewport.offset().y + center.y + viewport.get().h)
+        //         * texture_manager.cell_output_size().y,
+        //     10.,
+        //     macroquad::color::Color::new(1., 1., 1., 1.0),
+        // );
+
+        // draw_line(
+        //     (viewport.offset().x + viewport.get().w + center.x)
+        //         * texture_manager.cell_output_size().x,
+        //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
+        //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
+        //     (viewport.offset().y + center.y + viewport.get().h)
+        //         * texture_manager.cell_output_size().y,
+        //     10.,
+        //     macroquad::color::Color::new(1., 1., 1., 1.0),
+        // );
+
+        // draw_line(
+        //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
+        //     (viewport.offset().y + center.y + viewport.get().h)
+        //         * texture_manager.cell_output_size().y,
+        //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
+        //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
+        //     10.,
+        //     macroquad::color::Color::new(1., 1., 1., 1.0),
+        // );
+
+        // print line points
+        println!("viewport: {:?}", viewport.get());
+        // println!("center: {:?}", center);
+        // println!("offset: {:?}", viewport.offset());
+        // println!(
+        //     "start x: {}, start y: {}",
+        //     (viewport.offset().x) * texture_manager.cell_output_size().x,
+        //     (viewport.offset().y) * texture_manager.cell_output_size().y
+        // );
+        // println!(
+        //     "end x: {}, end y: {}",
+        //     (viewport.offset().x + viewport.get().w) * texture_manager.cell_output_size().x,
+        //     (viewport.offset().y) * texture_manager.cell_output_size().y
+        // );
     }
 }

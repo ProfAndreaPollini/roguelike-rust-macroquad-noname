@@ -3,12 +3,12 @@ use zorder::index_of;
 
 use super::map::{tile::Tile, Map};
 
-#[derive(Debug, Clone)]
-pub struct Viewport(Rect);
+#[derive(Debug, Clone, Default)]
+pub struct Viewport(Rect, Vec2);
 
 impl Viewport {
-    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
-        Self(Rect::new(x, y, w, h))
+    pub fn new(x: f32, y: f32, w: f32, h: f32, offset: Vec2) -> Self {
+        Self(Rect::new(x, y, w, h), offset)
     }
 
     pub fn set(&mut self, rect: Rect) {
@@ -32,16 +32,6 @@ impl Viewport {
     pub fn filter_tiles(&self, map: &Map) -> Vec<(u32, Tile)> {
         let mut tiles: Vec<(u32, Tile)> = vec![];
 
-        // map.tiles.tiles.iter().for_each(|item| {
-        //     let tile = item.1;
-        //     let coords = coord_of(*item.0);
-        //     let pos = Vec2::new(coords.0 as f32, coords.1 as f32);
-
-        //     if self.0.contains(pos) {
-        //         tiles.push(tile.clone());
-        //     }
-        // });
-
         let center = self.0.center();
 
         for x in self.0.left() as i32..self.0.right() as i32 {
@@ -56,5 +46,22 @@ impl Viewport {
         }
 
         tiles
+    }
+
+    pub fn offset(&self) -> &Vec2 {
+        &self.1
+    }
+
+    pub fn offset_mut(&mut self) -> &mut Vec2 {
+        &mut self.1
+    }
+
+    pub fn rect_mut(&mut self) -> &mut Rect {
+        &mut self.0
+    }
+
+    pub fn center(&self) -> Vec2 {
+        let offset = self.1;
+        -1.0 * self.0.center() + offset
     }
 }

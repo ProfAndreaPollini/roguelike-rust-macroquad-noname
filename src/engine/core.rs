@@ -7,9 +7,9 @@ use crate::{
     player::Player,
 };
 
-use macroquad::prelude::IVec2;
+use macroquad::prelude::{IVec2, Vec2};
 
-use std::cell::{Ref, RefCell};
+use std::cell::{Ref, RefCell, RefMut};
 use std::rc::Rc;
 
 use super::{fov::compute_fov, texture_manager::TextureManager, viewport::Viewport};
@@ -75,6 +75,13 @@ impl Engine {
     // pub fn get_mut(&self) -> RefCell<EngineRepr> {
     //     self.0.borrow_mut()
     // }
+    pub fn viewport(&self) -> Ref<Viewport> {
+        Ref::map(self.0.borrow(), |x| &x.viewport)
+    }
+
+    pub fn viewport_mut(&self) -> RefMut<Viewport> {
+        RefMut::map(self.0.borrow_mut(), |x| &mut x.viewport)
+    }
 }
 
 #[derive(Debug)]
@@ -102,7 +109,7 @@ impl EngineRepr {
             action_handler,
             map,
             npc_list: vec![npc],
-            viewport: Viewport::new(10.0, 10.0, 40.0, 40.0),
+            viewport: Viewport::new(0.0, 0.0, 40.0, 30.0, Vec2::new(17.5, 18.7)),
         }
     }
 
@@ -125,6 +132,7 @@ impl EngineRepr {
 
     pub fn render(&self) {
         self.map.draw(&self.texture_manager, &self.viewport);
+
         self.player
             .borrow()
             .draw(&self.texture_manager, &self.viewport);

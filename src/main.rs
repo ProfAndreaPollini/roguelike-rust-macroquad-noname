@@ -71,6 +71,22 @@ async fn main() {
                 ui.label(format!("FPS: {}", get_fps()));
 
                 ui.label("Test");
+                ui.label("ViewPort: ");
+                ui.label(format!("{:?}", engine.viewport()));
+                let mut binding = engine.viewport_mut();
+                let mut offset = binding.offset_mut();
+
+                ui.add(egui::DragValue::new(&mut offset.x).speed(0.1));
+                ui.add(egui::DragValue::new(&mut offset.y).speed(0.1));
+
+                let mut binding2 = binding.clone();
+                let mut rect = binding2.rect_mut();
+                ui.label("Rect: ");
+                ui.add(egui::DragValue::new(&mut rect.x).speed(0.1));
+                ui.add(egui::DragValue::new(&mut rect.y).speed(0.1));
+
+                ui.add(egui::DragValue::new(&mut rect.w).speed(0.1));
+                ui.add(egui::DragValue::new(&mut rect.h).speed(0.1));
             });
         });
 

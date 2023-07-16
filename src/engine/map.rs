@@ -5,9 +5,7 @@ pub mod builder;
 pub mod tile;
 
 use macroquad::{
-    prelude::{Vec2, WHITE},
-    shapes::draw_rectangle,
-    texture::draw_texture_ex,
+    prelude::WHITE, shapes::draw_rectangle, text::draw_text, texture::draw_texture_ex,
 };
 use tile::Tile;
 
@@ -69,40 +67,6 @@ impl Map {
         }
     }
 
-    // pub fn generate(width: u32, height: u32) -> Self {
-    //     let mut map = Self::new(width, height);
-
-    //     let perlin = Perlin::new(1);
-    //     let mut seed = 0;
-    //     let mut noise = |x, y| {
-    //         seed += 1;
-    //         perlin.set_seed(seed);
-    //         perlin.get([x, y])
-    //     };
-
-    //     for x in 0..width {
-    //         for y in 0..height {
-    //             let tile = if noise(x as f64 / 2., y as f64 / 2.).abs() > 0. {
-    //                 let mut t = Tile::new("floor".to_string(), "none".to_string());
-    //                 t.add_item(super::items::Item::Gold(super::items::Gold {
-    //                     value: 10,
-    //                     sprite_name: "gold".to_string(),
-    //                 }));
-    //                 t
-    //                 // tile.add_sprite("floor", 2, 2);
-    //             } else {
-    //                 let mut t = Tile::new("wall".to_string(), "none".to_string());
-    //                 t.cell_type = CellType::Wall;
-    //                 t
-    //             };
-
-    //             map.add_tile(x as u16, y as u16, tile);
-    //         }
-    //     }
-
-    //     map
-    // }
-
     pub fn set_tile_visible(&mut self, x: u16, y: u16, visible: bool) {
         let binding = self.tiles.tile_at_mut(x, y);
         // println!("{:?}", binding);
@@ -152,12 +116,7 @@ impl Map {
     ) {
         let texture = texture_manager.texture;
 
-        let center = -1.0 * viewport.get().center();
-        let offset = Vec2::new(
-            10., //center.x * texture_manager.cell_output_size().x,
-            10., //center.y * texture_manager.cell_output_size().y,
-        );
-        let center = center + offset;
+        let center = viewport.center();
         for (index, tile) in viewport.filter_tiles(self) {
             //&self.tiles.tiles {
             let (x, y) = coord_of(index);
@@ -221,6 +180,17 @@ impl Map {
                     macroquad::color::Color::new(0., 0., 0., 0.5),
                 );
             }
+
+            let s = format!("({x},{y})");
+            draw_text(
+                &s,
+                (x as f32 + center.x) * texture_manager.cell_output_size().x,
+                (y as f32 + center.y) * texture_manager.cell_output_size().y,
+                12.,
+                WHITE,
+            );
+
+            // draw viewport rectangle border
         }
     }
 
