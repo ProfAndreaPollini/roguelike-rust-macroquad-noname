@@ -19,17 +19,72 @@ pub struct Player {
     pub y: i32,
 }
 
+// impl Entity for Player {
+//     fn x(&mut self) -> &mut i32 {
+//         &mut self.x
+//     }
+
+//     fn y(&mut self) -> &mut i32 {
+//         &mut self.y
+//     }
+
+//     fn as_player_mut(&mut self) -> Option<&mut Player> {
+//         Some(self)
+//     }
+// }
+
 impl Entity for Player {
-    fn x(&mut self) -> &mut i32 {
-        &mut self.x
+    fn is_player(&self) -> bool {
+        true
     }
 
-    fn y(&mut self) -> &mut i32 {
-        &mut self.y
+    fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {
+        let texture = texture_manager.texture;
+        //...draw_sprite("idle", 0, 0);
+        let idle_sprite = texture_manager.get_sprite("idle");
+
+        let center = viewport.center();
+
+        draw_texture_ex(
+            texture,
+            (self.x as f32 + center.x) * texture_manager.cell_output_size().x,
+            (self.y as f32 + center.y) * texture_manager.cell_output_size().y,
+            WHITE,
+            macroquad::prelude::DrawTextureParams {
+                source: Some(idle_sprite),
+                dest_size: Some(texture_manager.cell_output_size()),
+                ..Default::default()
+            },
+        );
     }
 
-    fn as_player_mut(&mut self) -> Option<&mut Player> {
-        Some(self)
+    fn next_action(&self) -> Option<crate::actions::Action> {
+        let mut action = None;
+        if is_key_pressed(KeyCode::Right) {
+            // self.x += 1;
+            action = Some(crate::actions::Action::Move(Move { dx: 1, dy: 0 }));
+        }
+        if is_key_pressed(KeyCode::Left) {
+            // self.x -= 1;
+            //action_handler.add_action(crate::actions::Action::Move(Move { dx: -1, dy: 0 }));
+            action = Some(crate::actions::Action::Move(Move { dx: -1, dy: 0 }));
+        }
+        if is_key_pressed(KeyCode::Up) {
+            // self.y -= 1;
+            //action_handler.add_action(crate::actions::Action::Move(Move { dx: 0, dy: -1 }));
+            action = Some(crate::actions::Action::Move(Move { dx: 0, dy: -1 }));
+        }
+        if is_key_pressed(KeyCode::Down) {
+            // self.y += 1;
+            //action_handler.add_action(crate::actions::Action::Move(Move { dx: 0, dy: 1 }));
+            action = Some(crate::actions::Action::Move(Move { dx: 0, dy: 1 }));
+        }
+
+        action
+    }
+
+    fn position(&self) -> (i32, i32) {
+        (self.x, self.y)
     }
 }
 
@@ -65,83 +120,84 @@ impl Player {
         }
     }
 
-    pub fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {
-        let texture = texture_manager.texture;
-        let idle_sprite = texture_manager.get_sprite("idle");
+    // pub fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {
+    //     let texture = texture_manager.texture;
+    //     //...draw_sprite("idle", 0, 0);
+    //     let idle_sprite = texture_manager.get_sprite("idle");
 
-        // println!("idle_sprite: {:?}", idle_sprite);
-        // let center = -1.0 * viewport.get().center();
-        // let offset = *viewport.offset();
-        // let center = center + offset;
-        let center = viewport.center();
+    //     // println!("idle_sprite: {:?}", idle_sprite);
+    //     // let center = -1.0 * viewport.get().center();
+    //     // let offset = *viewport.offset();
+    //     // let center = center + offset;
+    //     let center = viewport.center();
 
-        draw_texture_ex(
-            texture,
-            (self.x as f32 + center.x) * texture_manager.cell_output_size().x,
-            (self.y as f32 + center.y) * texture_manager.cell_output_size().y,
-            WHITE,
-            macroquad::prelude::DrawTextureParams {
-                source: Some(idle_sprite),
-                dest_size: Some(texture_manager.cell_output_size()),
-                ..Default::default()
-            },
-        );
+    //     draw_texture_ex(
+    //         texture,
+    //         (self.x as f32 + center.x) * texture_manager.cell_output_size().x,
+    //         (self.y as f32 + center.y) * texture_manager.cell_output_size().y,
+    //         WHITE,
+    //         macroquad::prelude::DrawTextureParams {
+    //             source: Some(idle_sprite),
+    //             dest_size: Some(texture_manager.cell_output_size()),
+    //             ..Default::default()
+    //         },
+    //     );
 
-        // draw_line(
-        //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
-        //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
-        //     (viewport.offset().x + viewport.get().w + center.x)
-        //         * texture_manager.cell_output_size().x,
-        //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
-        //     10.,
-        //     macroquad::color::Color::new(1., 1., 1., 1.0),
-        // );
-        // draw_line(
-        //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
-        //     (viewport.offset().y + center.y + viewport.get().h)
-        //         * texture_manager.cell_output_size().y,
-        //     (viewport.offset().x + viewport.get().w + center.x)
-        //         * texture_manager.cell_output_size().x,
-        //     (viewport.offset().y + center.y + viewport.get().h)
-        //         * texture_manager.cell_output_size().y,
-        //     10.,
-        //     macroquad::color::Color::new(1., 1., 1., 1.0),
-        // );
+    //     // draw_line(
+    //     //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
+    //     //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
+    //     //     (viewport.offset().x + viewport.get().w + center.x)
+    //     //         * texture_manager.cell_output_size().x,
+    //     //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
+    //     //     10.,
+    //     //     macroquad::color::Color::new(1., 1., 1., 1.0),
+    //     // );
+    //     // draw_line(
+    //     //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
+    //     //     (viewport.offset().y + center.y + viewport.get().h)
+    //     //         * texture_manager.cell_output_size().y,
+    //     //     (viewport.offset().x + viewport.get().w + center.x)
+    //     //         * texture_manager.cell_output_size().x,
+    //     //     (viewport.offset().y + center.y + viewport.get().h)
+    //     //         * texture_manager.cell_output_size().y,
+    //     //     10.,
+    //     //     macroquad::color::Color::new(1., 1., 1., 1.0),
+    //     // );
 
-        // draw_line(
-        //     (viewport.offset().x + viewport.get().w + center.x)
-        //         * texture_manager.cell_output_size().x,
-        //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
-        //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
-        //     (viewport.offset().y + center.y + viewport.get().h)
-        //         * texture_manager.cell_output_size().y,
-        //     10.,
-        //     macroquad::color::Color::new(1., 1., 1., 1.0),
-        // );
+    //     // draw_line(
+    //     //     (viewport.offset().x + viewport.get().w + center.x)
+    //     //         * texture_manager.cell_output_size().x,
+    //     //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
+    //     //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
+    //     //     (viewport.offset().y + center.y + viewport.get().h)
+    //     //         * texture_manager.cell_output_size().y,
+    //     //     10.,
+    //     //     macroquad::color::Color::new(1., 1., 1., 1.0),
+    //     // );
 
-        // draw_line(
-        //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
-        //     (viewport.offset().y + center.y + viewport.get().h)
-        //         * texture_manager.cell_output_size().y,
-        //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
-        //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
-        //     10.,
-        //     macroquad::color::Color::new(1., 1., 1., 1.0),
-        // );
+    //     // draw_line(
+    //     //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
+    //     //     (viewport.offset().y + center.y + viewport.get().h)
+    //     //         * texture_manager.cell_output_size().y,
+    //     //     (viewport.offset().x + center.x) * texture_manager.cell_output_size().x,
+    //     //     (viewport.offset().y + center.y) * texture_manager.cell_output_size().y,
+    //     //     10.,
+    //     //     macroquad::color::Color::new(1., 1., 1., 1.0),
+    //     // );
 
-        // print line points
-        println!("viewport: {:?}", viewport.get());
-        // println!("center: {:?}", center);
-        // println!("offset: {:?}", viewport.offset());
-        // println!(
-        //     "start x: {}, start y: {}",
-        //     (viewport.offset().x) * texture_manager.cell_output_size().x,
-        //     (viewport.offset().y) * texture_manager.cell_output_size().y
-        // );
-        // println!(
-        //     "end x: {}, end y: {}",
-        //     (viewport.offset().x + viewport.get().w) * texture_manager.cell_output_size().x,
-        //     (viewport.offset().y) * texture_manager.cell_output_size().y
-        // );
-    }
+    //     // print line points
+    //     println!("viewport: {:?}", viewport.get());
+    //     // println!("center: {:?}", center);
+    //     // println!("offset: {:?}", viewport.offset());
+    //     // println!(
+    //     //     "start x: {}, start y: {}",
+    //     //     (viewport.offset().x) * texture_manager.cell_output_size().x,
+    //     //     (viewport.offset().y) * texture_manager.cell_output_size().y
+    //     // );
+    //     // println!(
+    //     //     "end x: {}, end y: {}",
+    //     //     (viewport.offset().x + viewport.get().w) * texture_manager.cell_output_size().x,
+    //     //     (viewport.offset().y) * texture_manager.cell_output_size().y
+    //     // );
+    // }
 }

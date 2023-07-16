@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::{
-    actions::{handle_actions, ActionHandler},
+    actions::{Action, ActionHandler, ActionResult},
     engine::map::Map,
     npc::NPC,
     player::Player,
@@ -18,24 +18,39 @@ pub trait Drawable {
     fn draw(&self, texture_manager: &TextureManager);
 }
 
+// pub trait Entity {
+//     fn x(&mut self) -> &mut i32;
+//     fn y(&mut self) -> &mut i32;
+
+//     fn set_x(&mut self, x: i32) {
+//         *self.x() = x;
+//     }
+
+//     fn set_y(&mut self, y: i32) {
+//         *self.y() = y;
+//     }
+
+//     fn move_by(&mut self, dx: i32, dy: i32) {
+//         *self.x() += dx;
+//         *self.y() += dy;
+//     }
+
+//     fn as_player_mut(&mut self) -> Option<&mut Player> {
+//         None
+//     }
+// }
+
+/// Trait representing an entity in the game world.
 pub trait Entity {
-    fn x(&mut self) -> &mut i32;
-    fn y(&mut self) -> &mut i32;
+    fn position(&self) -> (i32, i32);
+    fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {}
+    fn update(&mut self) {}
 
-    fn set_x(&mut self, x: i32) {
-        *self.x() = x;
+    fn is_player(&self) -> bool {
+        false
     }
 
-    fn set_y(&mut self, y: i32) {
-        *self.y() = y;
-    }
-
-    fn move_by(&mut self, dx: i32, dy: i32) {
-        *self.x() += dx;
-        *self.y() += dy;
-    }
-
-    fn as_player_mut(&mut self) -> Option<&mut Player> {
+    fn next_action(&self) -> Option<Action> {
         None
     }
 }
@@ -79,8 +94,12 @@ impl Engine {
         Ref::map(self.0.borrow(), |x| &x.viewport)
     }
 
-    pub fn viewport_mut(&self) -> RefMut<Viewport> {
-        RefMut::map(self.0.borrow_mut(), |x| &mut x.viewport)
+    pub fn viewport_m(&self) -> RefMut<Viewport> {
+        RefMut::map(self.0.borrow_mut(), |x: &mut EngineRepr| &mut x.viewport)
+        //     let mut engine = self.0.borrow();
+        //     // let viewport = &mut engine.viewport;
+        //     // RefMut::map(self.0.borrow(), |x| &x.viewport)
+        //     Ref::map(engine.borrow_mut(), |x| x)
     }
 }
 
@@ -91,6 +110,7 @@ pub struct EngineRepr {
     pub action_handler: ActionHandler,
     pub map: Map,
     pub npc_list: Vec<NPC>,
+    current_entity: usize,
     pub viewport: Viewport,
     // current_entity: Box<dyn Entity>,
 }
@@ -101,6 +121,7 @@ impl EngineRepr {
         // player.add_sprite(&texture_manager, "idle", 17, 0);
         let action_handler = ActionHandler::new();
         let npc = NPC::new(15, 15, "npc01".to_string());
+        let current_entity = usize::MAX;
 
         Self {
             // current_entity: Box::new(player),
@@ -110,6 +131,7 @@ impl EngineRepr {
             map,
             npc_list: vec![npc],
             viewport: Viewport::new(0.0, 0.0, 40.0, 30.0, Vec2::new(17.5, 18.7)),
+            current_entity,
         }
     }
 
@@ -118,17 +140,61 @@ impl EngineRepr {
     // }
 
     pub fn update(&mut self) {
-        self.handle_input();
-        handle_actions(self);
+        let mut action: Option<Action> = None;
+        let mut current: Option<&dyn Entity> = None;
+
+        pub fn handle_entity_action(engine: &mut EngineRepr, current: &impl Entity) {
+            // if let Some(action) = action {
+            let mut actions: Vec<Action> = vec![];
+
+            let next_action = current.next_action();
+            // if let Some(action) = next_action {
+            //     actions.push(action);
+            // }
+
+            match next_action {
+                Some(action) => {
+                    actions.push(action);
+                }
+                None => return,
+            }
+
+            while !actions.is_empty() {
+                let action = actions.pop().unwrap();
+                let action_reponse = action.perform(current, engine);
+                match action_reponse {
+                    ActionResult::Succeeded => {}
+                    ActionResult::Failure => {}
+                    ActionResult::AlternativeAction(action) => {
+                        actions.push(action);
+                    }
+                }
+                // }
+            }
+        }
+
+        if self.current_entity > self.npc_list.len() {
+            self.current_entity = 0;
+            let player = self.player.borrow_mut();
+            let mut player = RefMut::map(player, |x| x);
+            // let mut player_binding = &mut player;
+
+            handle_entity_action(self, &mut *player);
+        } else {
+            let mut npc = &self.npc_list[self.current_entity];
+            current = Some(npc);
+            action = npc.next_action();
+            self.current_entity += 1;
+        }
     }
 
-    pub fn handle_input(&mut self) {
-        let mut binding = self.player.borrow_mut();
-        let x = binding.as_player_mut().unwrap();
-        x.handle_input(&mut self.action_handler);
-        //.handle_input(&mut self.action_handler);
-        //.handle_input(&mut self.action_handler);
-    }
+    // pub fn handle_input(&mut self) {
+    //     let mut binding = self.player.borrow_mut();
+    //     let x = binding.as_player_mut().unwrap();
+    //     x.handle_input(&mut self.action_handler);
+    //     //.handle_input(&mut self.action_handler);
+    //     //.handle_input(&mut self.action_handler);
+    // }
 
     pub fn render(&self) {
         self.map.draw(&self.texture_manager, &self.viewport);
@@ -138,7 +204,7 @@ impl EngineRepr {
             .draw(&self.texture_manager, &self.viewport);
         self.npc_list
             .iter()
-            .for_each(|npc| npc.draw(&self.texture_manager));
+            .for_each(|npc| npc.draw(&self.texture_manager, &self.viewport));
     }
 
     pub fn update_fov(&mut self) {

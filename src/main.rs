@@ -73,7 +73,7 @@ async fn main() {
                 ui.label("Test");
                 ui.label("ViewPort: ");
                 ui.label(format!("{:?}", engine.viewport()));
-                let mut binding = engine.viewport_mut();
+                let mut binding = engine.viewport_m();
                 let mut offset = binding.offset_mut();
 
                 ui.add(egui::DragValue::new(&mut offset.x).speed(0.1));
