@@ -112,7 +112,7 @@ impl Map {
         texture_manager: &crate::engine::texture_manager::TextureManager,
         viewport: &Viewport,
     ) {
-        let texture = texture_manager.texture;
+        let texture = &texture_manager.texture;
 
         let center = viewport.center();
         for (index, tile) in viewport.filter_tiles(self) {
@@ -141,7 +141,7 @@ impl Map {
             //     tile.color,
             // )
             draw_texture_ex(
-                texture,
+                texture_manager.texture,
                 (x as f32 + center.x) * texture_manager.cell_output_size().x,
                 (y as f32 + center.y) * texture_manager.cell_output_size().y,
                 WHITE,
@@ -156,7 +156,7 @@ impl Map {
                 let item = tile.items().first().unwrap();
                 let sprite = texture_manager.get_sprite(item.sprite_name());
                 draw_texture_ex(
-                    texture,
+                    *texture,
                     (x as f32 + center.x) * texture_manager.cell_output_size().x,
                     (y as f32 + center.y) * texture_manager.cell_output_size().y,
                     WHITE,

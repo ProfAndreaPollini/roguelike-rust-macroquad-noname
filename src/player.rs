@@ -6,7 +6,7 @@ use macroquad::{
 use crate::{
     actions::{ActionHandler, Move},
     engine::{
-        core::entity::{Drawable, Updatable},
+        core::entity::{draw_sprite, Drawable, Updatable},
         texture_manager::TextureManager,
         viewport::Viewport,
     },
@@ -21,22 +21,17 @@ pub struct Player {
 impl Drawable for Player {
     fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {
         println!("Player draw");
-        let texture = texture_manager.texture;
+        let texture = &texture_manager.texture;
         //...draw_sprite("idle", 0, 0);
         let idle_sprite = texture_manager.get_sprite("idle");
 
-        let center = viewport.center();
-
-        draw_texture_ex(
+        draw_sprite(
             texture,
-            (self.x as f32 + center.x) * texture_manager.cell_output_size().x,
-            (self.y as f32 + center.y) * texture_manager.cell_output_size().y,
-            WHITE,
-            macroquad::prelude::DrawTextureParams {
-                source: Some(idle_sprite),
-                dest_size: Some(texture_manager.cell_output_size()),
-                ..Default::default()
-            },
+            self.x,
+            self.y,
+            viewport,
+            texture_manager.cell_output_size(),
+            idle_sprite,
         );
     }
 }

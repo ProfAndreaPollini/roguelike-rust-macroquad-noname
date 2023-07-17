@@ -1,7 +1,7 @@
 use macroquad::{prelude::WHITE, texture::draw_texture_ex};
 
 use crate::engine::{
-    core::entity::{Drawable, Updatable},
+    core::entity::{draw_sprite, Drawable, Updatable},
     texture_manager::TextureManager,
     viewport::Viewport,
 };
@@ -14,21 +14,30 @@ pub struct NPC {
 
 impl Drawable for NPC {
     fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {
-        let texture = texture_manager.texture;
+        let texture = &texture_manager.texture;
         let idle_sprite = texture_manager.get_sprite("npc01");
 
         let center = viewport.center();
 
-        draw_texture_ex(
+        // draw_texture_ex(
+        //     texture,
+        //     (self.x as f32 + center.x) * texture_manager.cell_output_size().x,
+        //     (self.y as f32 + center.y) * texture_manager.cell_output_size().y,
+        //     WHITE,
+        //     macroquad::prelude::DrawTextureParams {
+        //         source: Some(idle_sprite),
+        //         dest_size: Some(texture_manager.cell_output_size()),
+        //         ..Default::default()
+        //     },
+        // );
+
+        draw_sprite(
             texture,
-            (self.x as f32 + center.x) * texture_manager.cell_output_size().x,
-            (self.y as f32 + center.y) * texture_manager.cell_output_size().y,
-            WHITE,
-            macroquad::prelude::DrawTextureParams {
-                source: Some(idle_sprite),
-                dest_size: Some(texture_manager.cell_output_size()),
-                ..Default::default()
-            },
+            self.x,
+            self.y,
+            viewport,
+            texture_manager.cell_output_size(),
+            idle_sprite,
         );
     }
 }

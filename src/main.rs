@@ -6,6 +6,7 @@ mod random_walk_builder;
 mod scenes;
 
 use std::collections::HashMap;
+use std::hash;
 
 use engine::core::Engine;
 
@@ -14,6 +15,7 @@ use engine::map::builder::{BasicMapBuilder, MapBuilder};
 use engine::texture_manager::TextureManager;
 use macroquad::prelude::*;
 
+use macroquad::ui::{hash, root_ui, widgets};
 use random_walk_builder::RandomWalkBuilder;
 use scenes::events::SceneEvent;
 use scenes::fsm::GlobalStateTransitionHandler;
@@ -65,9 +67,17 @@ async fn main() {
         engine.render();
         engine.update_fov();
 
+        widgets::Window::new(hash!(), vec2(400., 200.), vec2(320., 400.))
+            .label("Shop")
+            .titlebar(true)
+            // .movable(false)
+            .ui(&mut *root_ui(), |ui| {
+                ui.label(Vec2::new(50., 50.), "Hello World!");
+            });
+
         let pos = engine.entity_at(0).position().unwrap();
 
-        egui_macroquad::ui(|egui_ctx| {
+        egui_macroquad::ui(|egui_ctx: &egui::Context| {
             egui::Window::new("egui ❤ macroquad").show(egui_ctx, |ui| {
                 //display fps
                 ui.label(format!("FPS: {}", get_fps()));

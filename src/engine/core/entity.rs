@@ -8,6 +8,8 @@ use crate::{
 
 use delegate::delegate;
 
+use macroquad::{prelude::Vec2, prelude::WHITE, texture::draw_texture_ex};
+
 pub trait Drawable {
     fn draw(&self, _texture_manager: &TextureManager, _viewport: &Viewport) {}
 }
@@ -69,7 +71,7 @@ where
     }
 
     pub fn move_to(&mut self, x: i32, y: i32) {
-        if let Some((x, y)) = self.position() {
+        if let Some((_x, _y)) = self.position() {
             self.breed.move_to(x, y);
         }
     }
@@ -126,4 +128,27 @@ impl Entity {
             pub fn move_to(&mut self, x: i32, y: i32);
         }
     }
+}
+
+pub fn draw_sprite(
+    texture: &macroquad::texture::Texture2D,
+    x: i32,
+    y: i32,
+    viewport: &Viewport,
+    cell_output_size: Vec2,
+    sprite_rect: macroquad::prelude::Rect,
+) {
+    let center = viewport.center();
+
+    draw_texture_ex(
+        *texture,
+        (x as f32 + center.x) * cell_output_size.x,
+        (y as f32 + center.y) * cell_output_size.y,
+        WHITE,
+        macroquad::prelude::DrawTextureParams {
+            source: Some(sprite_rect),
+            dest_size: Some(cell_output_size),
+            ..Default::default()
+        },
+    );
 }

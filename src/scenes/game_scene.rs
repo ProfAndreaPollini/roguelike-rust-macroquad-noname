@@ -1,5 +1,5 @@
 use macroquad::{
-    prelude::{debug, info, WHITE},
+    prelude::{info, WHITE},
     text::draw_text,
     window::{screen_height, screen_width},
 };
@@ -29,11 +29,11 @@ impl GameScene {
 
 impl UpdatableScene for GameScene {
     fn update(&mut self) {
-        debug!("GameScene update");
+        // debug!("GameScene update");
     }
 
     fn draw(&self) {
-        debug!("GameScene draw");
+        // debug!("GameScene draw");
         draw_text(
             "GAME!!!!!",
             screen_width() / 2.,

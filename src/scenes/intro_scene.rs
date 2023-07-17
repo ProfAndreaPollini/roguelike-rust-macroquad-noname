@@ -1,6 +1,6 @@
 use macroquad::{
     prelude::{info, KeyCode, WHITE},
-    text::draw_text,
+    text::{draw_text, draw_text_ex, TextParams},
     window::{screen_height, screen_width},
 };
 
@@ -15,12 +15,18 @@ impl UpdatableScene for IntroScene {
 
     fn draw(&self) {
         // info!("IntroScene draw");
-        draw_text(
+        draw_text_ex(
             "Rust Roguelike",
             screen_width() / 2.,
             screen_height() / 2.,
-            72.,
-            WHITE,
+            {
+                TextParams {
+                    font_size: 120,
+                    font_scale: 1.0,
+                    color: WHITE,
+                    ..TextParams::default()
+                }
+            },
         );
     }
 }

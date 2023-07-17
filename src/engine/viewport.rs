@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use macroquad::prelude::{Rect, Vec2};
 use zorder::index_of;
 
