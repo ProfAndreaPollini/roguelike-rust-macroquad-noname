@@ -15,9 +15,9 @@ impl GameScene {
         Self { log: vec![] }
     }
 
-    pub fn log(&self) -> &Vec<String> {
-        &self.log
-    }
+    // pub fn log(&self) -> &Vec<String> {
+    //     &self.log
+    // }
 
     pub fn add_log(&mut self, log: String) {
         if self.log.len() > 10 {

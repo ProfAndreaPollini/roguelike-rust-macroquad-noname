@@ -11,11 +11,9 @@ use tile::Tile;
 
 use zorder::{coord_of, index_of};
 
-use crate::engine::core::Entity;
-
 use self::tile::CellType;
 
-use super::viewport::Viewport;
+use super::{core::entity::Entity, viewport::Viewport};
 
 #[derive(Debug, Clone)]
 pub struct MapTiles {
@@ -204,7 +202,7 @@ impl Map {
         self.tiles.tile_at(x, y)
     }
 
-    pub fn is_valid_position(&self, entity: &dyn Entity, x: i32, y: i32) -> bool {
+    pub fn is_valid_position(&self, entity: &Entity, x: i32, y: i32) -> bool {
         // let (x, y) = coord_of(index_of((x as u16, y as u16)));
         // let (x, y) = (x as i32, y as i32);
         let (width, height) = (self.width as i32, self.height as i32);

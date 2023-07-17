@@ -1,44 +1,26 @@
 use macroquad::{
-    prelude::{is_key_pressed, KeyCode, Vec2, WHITE},
-    shapes::{draw_line, draw_poly_lines},
+    prelude::{is_key_pressed, KeyCode, WHITE},
     texture::draw_texture_ex,
 };
 
 use crate::{
     actions::{ActionHandler, Move},
     engine::{
-        core::Entity,
+        core::entity::{Drawable, Updatable},
         texture_manager::TextureManager,
-        viewport::{self, Viewport},
+        viewport::Viewport,
     },
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Player {
     pub x: i32,
     pub y: i32,
 }
 
-// impl Entity for Player {
-//     fn x(&mut self) -> &mut i32 {
-//         &mut self.x
-//     }
-
-//     fn y(&mut self) -> &mut i32 {
-//         &mut self.y
-//     }
-
-//     fn as_player_mut(&mut self) -> Option<&mut Player> {
-//         Some(self)
-//     }
-// }
-
-impl Entity for Player {
-    fn is_player(&self) -> bool {
-        true
-    }
-
+impl Drawable for Player {
     fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {
+        println!("Player draw");
         let texture = texture_manager.texture;
         //...draw_sprite("idle", 0, 0);
         let idle_sprite = texture_manager.get_sprite("idle");
@@ -56,6 +38,19 @@ impl Entity for Player {
                 ..Default::default()
             },
         );
+    }
+}
+impl Updatable for Player {
+    fn update(&mut self) {}
+
+    fn move_by(&mut self, dx: i32, dy: i32) {
+        self.x += dx;
+        self.y += dy;
+    }
+
+    fn move_to(&mut self, x: i32, y: i32) {
+        self.x = x;
+        self.y = y;
     }
 
     fn next_action(&self) -> Option<crate::actions::Action> {
@@ -80,11 +75,13 @@ impl Entity for Player {
             action = Some(crate::actions::Action::Move(Move { dx: 0, dy: 1 }));
         }
 
+        println!("Player next action: {:?}", action);
+
         action
     }
 
-    fn position(&self) -> (i32, i32) {
-        (self.x, self.y)
+    fn position(&self) -> Option<(i32, i32)> {
+        Some((self.x, self.y))
     }
 }
 

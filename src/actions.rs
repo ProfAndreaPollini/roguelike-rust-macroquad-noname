@@ -1,8 +1,4 @@
-use std::cell::RefCell;
-
-use macroquad::prelude::Vec2;
-
-use crate::engine::core::{EngineRepr, Entity};
+use crate::engine::{core::entity::Entity, map::Map};
 
 // pub trait Performable {
 //     //fn perform(&self, entity: &'a RefCell<dyn Entity>, engine: &mut EngineRepr);
@@ -28,7 +24,36 @@ pub enum Action {
 }
 
 impl Action {
-    pub fn perform(&self, entity: &dyn Entity, engine: &mut EngineRepr) -> ActionResult {
+    pub fn perform(&self, entity: &mut Entity, map: &mut Map) -> ActionResult {
+        // let entity = { engine.current_entity_mut() };
+        // let mut map = &mut engine.map;
+        let pos = entity.position();
+
+        if pos.is_none() {
+            return ActionResult::Failure;
+        }
+
+        match self {
+            Action::Move(Move { dx, dy }) => {
+                let (x, y) = pos.unwrap();
+                let desiderd_x = x + dx;
+                let desiderd_y = y + dy;
+
+                println!("Desired position: {}, {}", desiderd_x, desiderd_y);
+
+                if !map.is_valid_position(entity, desiderd_x, desiderd_y) {
+                    return ActionResult::Failure;
+                }
+
+                entity.move_by(*dx, *dy);
+
+                // entity.move_by(*dx, *dy);
+
+                ActionResult::Succeeded
+            }
+            _ => ActionResult::Failure,
+        };
+
         ActionResult::Failure
     }
     // fn perform(&self, entity: &'a RefCell<dyn Entity>, engine: &mut EngineRepr) {

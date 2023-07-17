@@ -65,6 +65,8 @@ async fn main() {
         engine.render();
         engine.update_fov();
 
+        let pos = engine.entity_at(0).position().unwrap();
+
         egui_macroquad::ui(|egui_ctx| {
             egui::Window::new("egui ❤ macroquad").show(egui_ctx, |ui| {
                 //display fps
@@ -87,6 +89,9 @@ async fn main() {
 
                 ui.add(egui::DragValue::new(&mut rect.w).speed(0.1));
                 ui.add(egui::DragValue::new(&mut rect.h).speed(0.1));
+
+                ui.label("Player: ");
+                ui.label(format!("{:?}", pos));
             });
         });
 
