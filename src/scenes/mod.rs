@@ -1,10 +1,11 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
-use crate::engine::core::Engine;
+use crate::engine::{core::Engine, texture_manager::TextureManager};
+
+use self::events::SceneCommands;
 
 pub mod end_scene;
 pub mod events;
-pub mod fsm;
 pub mod game_scene;
 pub mod intro_scene;
 
@@ -16,11 +17,15 @@ pub enum Scene {
 }
 
 pub trait UpdatableScene {
+    fn process_input(&mut self, event: events::SceneEvent) -> Option<SceneCommands> {
+        None
+    }
+    fn setup(&mut self, context: Rc<SceneContext>) {}
     fn update(&mut self) {}
     fn draw(&self) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct SceneContext {
-    pub game: Engine,
+    pub texture_manager: Option<Rc<TextureManager>>,
 }

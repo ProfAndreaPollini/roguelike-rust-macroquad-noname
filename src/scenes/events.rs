@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 use macroquad::prelude::KeyCode;
 
+use super::Scene;
+
 #[derive(Debug)]
 pub enum MouseEvent {
     Pressed(macroquad::prelude::MouseButton),
@@ -8,13 +10,16 @@ pub enum MouseEvent {
 }
 
 #[derive(Debug)]
+pub enum SceneCommands {
+    ChangeScene(Scene),
+    Exit,
+}
+
+#[derive(Debug)]
 pub enum SceneEvent {
     PlayGame,
     KeyPressed(KeyCode),
     Mouse(Vec<MouseEvent>),
-    Update,
-    Draw,
-    EndGame,
 }
 
 impl ToString for SceneEvent {

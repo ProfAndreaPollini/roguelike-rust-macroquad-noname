@@ -1,7 +1,8 @@
 #![allow(dead_code)]
+
 use crate::{
     actions::Action,
-    engine::{texture_manager::TextureManager, viewport::Viewport},
+    engine::{map::Map, texture_manager::TextureManager, viewport::Viewport},
     npc::NPC,
     player::Player,
 };
@@ -10,13 +11,18 @@ use delegate::delegate;
 
 use macroquad::{prelude::Vec2, prelude::WHITE, texture::draw_texture_ex};
 
+use super::world::{EntityKey, World};
+
 pub trait Drawable {
     fn draw(&self, _texture_manager: &TextureManager, _viewport: &Viewport) {}
 }
 
 pub trait Updatable {
-    fn update(&mut self);
-    fn next_action(&self) -> Option<Action> {
+    fn update(&self, _map: &mut Map, _world: &World, _key: EntityKey) -> Vec<Action> {
+        vec![]
+    }
+
+    fn next_action(&self, _map: &Map, _world: &World, _key: EntityKey) -> Option<Action> {
         None
     }
     fn position(&self) -> Option<(i32, i32)> {
@@ -30,8 +36,9 @@ pub trait Updatable {
 /// Trait representing an entity in the game world.
 #[derive(Debug, Clone)]
 pub struct EntityFeatures<T: Updatable + Drawable> {
+    id: Option<EntityKey>,
     pub name: String,
-    breed: T,
+    pub breed: T,
 }
 
 impl<T> EntityFeatures<T>
@@ -42,8 +49,11 @@ where
         Self {
             name,
             breed: T::default(),
+            id: None,
         }
     }
+
+    pub fn render(&self, _texture_manager: &TextureManager, _viewport: &Viewport) {}
 }
 
 impl<T> EntityFeatures<T>
@@ -57,14 +67,14 @@ where
         false
     }
 
-    fn next_action(&self) -> Option<Action> {
+    fn next_action(&mut self) -> Option<Action> {
         None
     }
-    fn position(&self) -> Option<(i32, i32)> {
+    pub fn position(&self) -> Option<(i32, i32)> {
         None
     }
 
-    fn move_by(&mut self, dx: i32, dy: i32) {
+    pub fn move_by(&mut self, dx: i32, dy: i32) {
         if let Some((x, y)) = self.position() {
             self.breed.move_by(x + dx, y + dy);
         }
@@ -84,6 +94,20 @@ pub enum Entity {
 }
 
 impl Entity {
+    pub fn id(&self) -> Option<EntityKey> {
+        match self {
+            Entity::Player(player) => player.id,
+            Entity::NPC(npc) => npc.id,
+        }
+    }
+
+    pub(crate) fn set_id(&mut self, id: EntityKey) {
+        match self {
+            Entity::Player(player) => player.id = Some(id),
+            Entity::NPC(npc) => npc.id = Some(id),
+        }
+    }
+
     pub fn is_player(&self) -> bool {
         match self {
             Entity::Player(_) => true,
@@ -98,18 +122,34 @@ impl Entity {
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&self, world: &World, map: &mut Map) -> Vec<Action> {
         match self {
-            Entity::Player(player) => player.breed.update(),
-            Entity::NPC(npc) => npc.breed.update(),
+            Entity::Player(features) => {
+                if let Some(key) = features.id {
+                    features.breed.update(map, world, key)
+                } else {
+                    vec![]
+                }
+            }
+            Entity::NPC(features) => {
+                if let Some(key) = features.id {
+                    features.breed.update(map, world, key)
+                } else {
+                    vec![]
+                }
+            }
         }
     }
 
-    pub fn next_action(&self) -> Option<Action> {
+    pub fn next_action(&mut self, world: &mut World, map: &Map) -> Option<Action> {
         match self {
-            Entity::Player(player) => player.breed.next_action(),
-            Entity::NPC(npc) => npc.breed.next_action(),
-        }
+            Entity::Player(features) => {
+                features.breed.next_action(map, world, features.id.unwrap())
+            }
+            Entity::NPC(features) => features.breed.next_action(map, world, features.id.unwrap()),
+        };
+
+        None
     }
 
     pub fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {

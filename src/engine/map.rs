@@ -133,13 +133,6 @@ impl Map {
                 continue;
             }
 
-            // draw_rectangle(
-            //     x as f32 * texture_manager.cell_size * texture_manager.scale,
-            //     y as f32 * texture_manager.cell_size * texture_manager.scale,
-            //     texture_manager.cell_size * texture_manager.scale,
-            //     texture_manager.cell_size * texture_manager.scale,
-            //     tile.color,
-            // )
             draw_texture_ex(
                 texture_manager.texture,
                 (x as f32 + center.x) * texture_manager.cell_output_size().x,

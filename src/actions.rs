@@ -1,53 +1,50 @@
-use crate::engine::{core::entity::Entity, map::Map};
+use crate::engine::{
+    core::world::{EntityKey, World},
+    map::Map,
+};
 
-// pub trait Performable {
-//     //fn perform(&self, entity: &'a RefCell<dyn Entity>, engine: &mut EngineRepr);
-//     fn perform(&self, entity: impl Entity, engine: &mut EngineRepr);
-// }
-
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum ActionResult {
     Succeeded,
     Failure,
     AlternativeAction(Action),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Move {
     pub dx: i32,
     pub dy: i32,
+
+    pub key: EntityKey,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum Action {
     Move(Move),
 }
 
 impl Action {
-    pub fn perform(&self, entity: &mut Entity, map: &mut Map) -> ActionResult {
-        // let entity = { engine.current_entity_mut() };
-        // let mut map = &mut engine.map;
-        let pos = entity.position();
-
-        if pos.is_none() {
-            return ActionResult::Failure;
-        }
-
+    pub fn perform(&self, map: &mut Map, world: &mut World) -> ActionResult {
         match self {
-            Action::Move(Move { dx, dy }) => {
+            Action::Move(Move { dx, dy, key }) => {
+                let e = world.get_entity_mut(*key).unwrap();
+
+                let pos = e.position();
+
+                if pos.is_none() {
+                    return ActionResult::Failure;
+                }
                 let (x, y) = pos.unwrap();
                 let desiderd_x = x + dx;
                 let desiderd_y = y + dy;
 
                 println!("Desired position: {}, {}", desiderd_x, desiderd_y);
 
-                if !map.is_valid_position(entity, desiderd_x, desiderd_y) {
+                if !map.is_valid_position(e, desiderd_x, desiderd_y) {
                     return ActionResult::Failure;
                 }
 
-                entity.move_by(*dx, *dy);
-
-                // entity.move_by(*dx, *dy);
+                e.move_by(*dx, *dy);
 
                 ActionResult::Succeeded
             }
@@ -55,85 +52,5 @@ impl Action {
         };
 
         ActionResult::Failure
-    }
-    // fn perform(&self, entity: &'a RefCell<dyn Entity>, engine: &mut EngineRepr) {
-    //     let map = &mut engine.map;
-
-    //     let mut binding = entity.borrow_mut();
-    //     let e = binding.as_player_mut().unwrap();
-
-    //     //let entity = e.as_player_mut().unwrap();
-    //     match self {
-    //         Action::Move(Move { dx: x, dy: y }) => {
-    //             // get desired position
-    //             let desired_x = *e.x() + x;
-    //             let desired_y = *e.y() + y;
-
-    //             let current_pos = Vec2::new(*e.x() as f32, *e.y() as f32);
-
-    //             // println!("Desired position: {}, {}", desired_x, desired_y);
-
-    //             // check if position is valid
-    //             if !map.is_valid_position(e, desired_x, desired_y) {
-    //                 return;
-    //             }
-
-    //             // println!("Move to {}, {}", x, y);
-    //             // *entity.x() += x;
-    //             // *entity.y() += y;
-    //             //e.set_x(desired_x);
-    //             *(e.x()) += x;
-    //             *(e.y()) += y;
-
-    //             let viewport_center = engine.viewport.get().center();
-    //             let desired_pos =
-    //                 Vec2::new(desired_x as f32, desired_y as f32) * 0.3 + current_pos * 0.7;
-
-    //             if viewport_center.distance(desired_pos) > 5.0 {
-    //                 engine.viewport.move_to(desired_pos.x, desired_pos.y);
-    //             }
-    //         }
-    //     }
-    // }
-}
-
-#[derive(Debug)]
-pub struct ActionHandler {
-    actions: Vec<Action>,
-}
-
-pub trait Movable {
-    fn move_by(&mut self, x: i32, y: i32);
-}
-
-// pub fn handle_actions(engine: &mut EngineRepr) {
-//     // let action_handler = engine.action_handler;
-//     // let entity = Box::new(engine.player().clone()) as Box<dyn Entity>;
-//     let actions = engine.action_handler.actions.clone();
-//     // println!("{:?}", engine.player.borrow());
-//     let p = engine.player.clone();
-//     // println!("{:?}", p);
-//     // p.as_ref().borrow_mut().move_by(1, 0); // * p.borrow_mut().x() += 1;
-//     // let map = engine.map.clone();
-
-//     for action in actions.iter() {
-//         action.perform(p.as_ref(), engine);
-//     }
-
-//     // actions.iter().for_each(|action| {
-//     //     action.perform(entity, &mut engine.map);
-//     // });
-//     engine.action_handler.actions.clear();
-// }
-
-impl ActionHandler {
-    pub fn new() -> Self {
-        Self {
-            actions: Vec::new(),
-        }
-    }
-
-    pub fn add_action(&mut self, action: Action) {
-        self.actions.push(action);
     }
 }

@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate lazy_static;
+
 mod actions;
 mod engine;
 mod npc;
@@ -5,8 +8,10 @@ mod player;
 mod random_walk_builder;
 mod scenes;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
-use std::hash;
+
+use std::rc::Rc;
 
 use engine::core::Engine;
 
@@ -18,8 +23,8 @@ use macroquad::prelude::*;
 use macroquad::ui::{hash, root_ui, widgets};
 use random_walk_builder::RandomWalkBuilder;
 use scenes::events::SceneEvent;
-use scenes::fsm::GlobalStateTransitionHandler;
-use scenes::{Scene, SceneContext};
+
+use scenes::{Scene, UpdatableScene};
 
 use crate::scenes::events::MouseEvent;
 
@@ -32,14 +37,16 @@ fn window_conf() -> Conf {
     }
 }
 
+// lazy_static! {
+//     static ref WORLD: RwLock<World> = RwLock::new(World::new());
+// }
+
 #[macroquad::main(window_conf)]
 async fn main() {
     let mut texture_manager =
         TextureManager::new("assets/urizen_onebit_tileset__v1d0.png", 12., 3., 1.).await;
 
     texture_manager.load_from_json("assets/config.json");
-
-    //let map = Map::generate(100, 100);
 
     let map = MapBuilder::new(100, 100, HashMap::new())
         .add_step(&BasicMapBuilder::default())
@@ -48,30 +55,43 @@ async fn main() {
 
     let engine = Engine::new(texture_manager, map);
 
-    let mut scene_sm = nefsm::sync::StateMachine::<Scene, SceneContext, SceneEvent>::new(
-        SceneContext {
-            game: engine.clone(),
-        },
-        Some(Box::new(GlobalStateTransitionHandler {})),
-    );
+    let mut texture_manager =
+        TextureManager::new("assets/urizen_onebit_tileset__v1d0.png", 12., 3., 1.).await;
 
-    let _ret = scene_sm.init(Scene::Intro);
+    texture_manager.load_from_json("assets/config.json");
+
+    let mut scenes = HashMap::<Scene, Rc<RefCell<dyn UpdatableScene>>>::new();
+
+    let intro_scene = scenes::intro_scene::IntroScene {};
+    scenes.insert(Scene::Intro, Rc::new(RefCell::new(intro_scene)));
+
+    let game_scene = scenes::game_scene::GameScene::new();
+    scenes.insert(Scene::Game, Rc::new(RefCell::new(game_scene)));
+
+    // let _ret = scene_sm.init(Scene::Intro);
+
+    // let x = scenes.get(&Scene::Intro).unwrap().borrow_mut();
+    let mut current_scene = scenes.get(&Scene::Intro).unwrap().clone();
+    // let mut current_scene = current_scene_ref.borrow_mut();
+
+    let context = Rc::new(scenes::SceneContext {
+        texture_manager: Some(Rc::new(texture_manager)),
+    });
+
+    current_scene.borrow_mut().setup(context.clone());
+    let mut commands = vec![];
 
     loop {
         clear_background(BLACK);
 
-        engine.update();
-
-        // map.draw(&texture_manager);
-
-        engine.render();
-        engine.update_fov();
+        current_scene.borrow_mut().update();
+        current_scene.borrow_mut().draw();
 
         widgets::Window::new(hash!(), vec2(400., 200.), vec2(320., 400.))
             .label("Shop")
             .titlebar(true)
             // .movable(false)
-            .ui(&mut *root_ui(), |ui| {
+            .ui(&mut root_ui(), |ui| {
                 ui.label(Vec2::new(50., 50.), "Hello World!");
             });
 
@@ -86,13 +106,13 @@ async fn main() {
                 ui.label("ViewPort: ");
                 ui.label(format!("{:?}", engine.viewport()));
                 let mut binding = engine.viewport_m();
-                let mut offset = binding.offset_mut();
+                let offset = binding.offset_mut();
 
                 ui.add(egui::DragValue::new(&mut offset.x).speed(0.1));
                 ui.add(egui::DragValue::new(&mut offset.y).speed(0.1));
 
                 let mut binding2 = binding.clone();
-                let mut rect = binding2.rect_mut();
+                let rect = binding2.rect_mut();
                 ui.label("Rect: ");
                 ui.add(egui::DragValue::new(&mut rect.x).speed(0.1));
                 ui.add(egui::DragValue::new(&mut rect.y).speed(0.1));
@@ -108,11 +128,13 @@ async fn main() {
         //get all key pressed this frame
         let keys_pressed_this_frame = get_last_key_pressed();
 
-        println!(" key pressed{:?}", keys_pressed_this_frame);
         if keys_pressed_this_frame.is_some() {
             let event = SceneEvent::KeyPressed(keys_pressed_this_frame.unwrap());
-            println!("firing event {:?}", event);
-            let _ = scene_sm.process_event(&event);
+            println!("key pressed {:?}", event);
+
+            if let Some(cmd) = current_scene.borrow_mut().process_input(event) {
+                commands.push(cmd);
+            }
         }
 
         // process mouse events
@@ -128,16 +150,30 @@ async fn main() {
             }
         }
 
+        // process mouse move
         if !mouse_events.is_empty() {
             let event = SceneEvent::Mouse(mouse_events);
             println!("firing mouse event {:?}", event);
-            let _ = scene_sm.process_event(&event);
+
+            if let Some(cmd) = current_scene.borrow_mut().process_input(event) {
+                commands.push(cmd);
+            }
         }
 
-        let _ = scene_sm.process_event(&SceneEvent::Update);
-        let _ = scene_sm.process_event(&SceneEvent::Draw);
-
         egui_macroquad::draw();
+
+        // process commands
+        if !commands.is_empty() {
+            let cmd = commands.pop().unwrap();
+            match cmd {
+                scenes::events::SceneCommands::ChangeScene(scene) => {
+                    let new_scene = scenes.get(&scene).unwrap().clone();
+                    current_scene = new_scene;
+                    current_scene.borrow_mut().setup(context.clone());
+                }
+                scenes::events::SceneCommands::Exit => break,
+            }
+        }
 
         next_frame().await
     }

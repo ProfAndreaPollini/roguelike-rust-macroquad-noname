@@ -1,14 +1,32 @@
 use macroquad::{
-    prelude::{info, KeyCode, WHITE},
-    text::{draw_text, draw_text_ex, TextParams},
+    prelude::WHITE,
+    text::{draw_text_ex, TextParams},
     window::{screen_height, screen_width},
 };
 
-use super::{events::SceneEvent, Scene, SceneContext, UpdatableScene};
+use super::UpdatableScene;
 
 pub struct IntroScene {}
 
 impl UpdatableScene for IntroScene {
+    fn process_input(
+        &mut self,
+        event: super::events::SceneEvent,
+    ) -> Option<super::events::SceneCommands> {
+        match event {
+            super::events::SceneEvent::KeyPressed(key) => {
+                if key == macroquad::input::KeyCode::Space {
+                    Some(super::events::SceneCommands::ChangeScene(
+                        super::Scene::Game,
+                    ))
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
     fn update(&mut self) {
         // info!("IntroScene update");
     }
@@ -28,46 +46,5 @@ impl UpdatableScene for IntroScene {
                 }
             },
         );
-    }
-}
-
-impl nefsm::sync::Stateful<Scene, SceneContext, SceneEvent> for IntroScene {
-    fn on_enter(&mut self, _context: &mut SceneContext) -> nefsm::sync::Response<Scene> {
-        // println!("Null state on enter, retries = {}", context.retries);
-        // nefsm::sync::Response::Transition(Scene::Game)
-        info!("Intro state on enter");
-        nefsm::sync::Response::Handled
-    }
-
-    fn on_event(
-        &mut self,
-        event: &SceneEvent,
-        _context: &mut SceneContext,
-    ) -> nefsm::sync::Response<Scene> {
-        match event {
-            SceneEvent::Update => {
-                info!("Intro state on event : {:?}", event);
-                self.update();
-                nefsm::sync::Response::Handled
-            }
-            SceneEvent::Draw => {
-                info!("Intro state on event : {:?}", event);
-                self.draw();
-                nefsm::sync::Response::Handled
-            }
-            SceneEvent::KeyPressed(key) => {
-                info!("KeyPressedEvent : {:?}", key);
-                if *key == KeyCode::Space {
-                    nefsm::sync::Response::Transition(Scene::Game)
-                } else {
-                    nefsm::sync::Response::Handled
-                }
-            }
-            _ => nefsm::sync::Response::Handled,
-        }
-    }
-
-    fn on_exit(&mut self, _context: &mut SceneContext) {
-        println!("Null state on exit");
     }
 }
