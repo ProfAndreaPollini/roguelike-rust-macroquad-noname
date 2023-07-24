@@ -30,6 +30,7 @@ impl<'a> MapBuilderAlgorithm<'a> for RoomBuilder {
                 let mut tile =
                     crate::engine::map::tile::Tile::new("floor".to_string(), "floor".to_string());
                 tile.cell_type = crate::engine::map::tile::CellType::Floor;
+                tile.set_visible(false);
                 // tile.add_item(Item::Gold(Gold {
                 //     value: 1,
                 //     sprite_name: "gold".to_string(),

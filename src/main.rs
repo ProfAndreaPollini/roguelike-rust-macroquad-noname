@@ -85,12 +85,25 @@ async fn main() {
 
     current_scene.borrow_mut().setup(context.clone());
     let mut commands = vec![];
+    let render_target = render_target(800, 600);
+    render_target.texture.set_filter(FilterMode::Nearest);
 
     loop {
+        // set_camera(&Camera2D {
+        //     zoom: vec2(1.0, 1.0),
+        //     target: vec2(0.0, 0.0),
+        //     render_target: Some(render_target),
+        //     ..Default::default()
+        // });
         clear_background(BLACK);
 
         current_scene.borrow_mut().update();
+
         current_scene.borrow_mut().draw();
+        // set_default_camera();
+        // clear_background(BLACK);
+        // draw_texture(render_target.texture, 0., 0., WHITE);
+
         current_scene.borrow_mut().draw_ui();
 
         widgets::Window::new(hash!(), vec2(400., 200.), vec2(320., 400.))

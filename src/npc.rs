@@ -1,6 +1,7 @@
 use crate::engine::{
     core::{
         camera::Camera,
+        direction::Direction,
         entity::{draw_sprite, Drawable, Updatable},
     },
     texture_manager::TextureManager,
@@ -11,6 +12,7 @@ use crate::engine::{
 pub struct NPC {
     pub x: i32,
     pub y: i32,
+    pub direction: Direction,
 }
 
 impl Drawable for NPC {

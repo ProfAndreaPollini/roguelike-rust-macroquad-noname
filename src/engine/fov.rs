@@ -1,7 +1,10 @@
 #![allow(dead_code, unused_variables)]
 use macroquad::prelude::IVec2;
 
-use super::map::Map;
+use super::{
+    core::direction::Direction,
+    map::{bresenham::line_to_cell, cell::Cell, Map},
+};
 
 // Implementa i dettagli delle altre classi e funzioni utilizzate
 
@@ -256,4 +259,80 @@ fn is_symmetric(row: &Row, quadrant: &Quadrant, tile: Option<IVec2>) -> bool {
     } else {
         false
     }
+}
+
+// BRESENHAM FOV ALGORITHM
+
+pub fn bresenham_fov(
+    start: &Cell,
+    direction: &Direction,
+    depth: u16,
+    angle: f32,
+    map: &mut Map,
+) -> Vec<Cell> {
+    let tan_angle = (angle * 0.5).to_radians().tan();
+    let p_size = (depth as f32 * tan_angle).ceil() as u16;
+    println!("p_size = {},  tan_angle={:?}", p_size, tan_angle);
+    let mut candidates = Vec::<Cell>::new();
+
+    let mut x = 0;
+    let mut y = 0;
+    let mut dx = 0;
+    let mut dy = 0;
+    let mut end = Cell::new(0, 0);
+
+    match direction {
+        Direction::Down => {
+            let mut p = start.clone();
+
+            x = ((start.x - p_size) as i32).max(0);
+            y = ((start.y + depth) as i32).max(0);
+            dx = 1;
+            dy = 0;
+        }
+        Direction::Up => {
+            let mut p = start.clone();
+
+            x = ((start.x - p_size) as i32).max(0);
+            y = ((start.y - depth) as i32).max(0);
+            dx = 1;
+            dy = 1;
+        }
+        Direction::Left => {
+            x = ((start.x - depth) as i32).max(0);
+            y = ((start.y - p_size) as i32).max(0);
+            dy = 1;
+            dx = 0;
+        }
+        Direction::Right => {
+            x = ((start.x + depth) as i32).max(0);
+            y = ((start.y - p_size) as i32).max(0);
+            dy = 1;
+            dx = 0;
+        }
+    }
+
+    for i in 0..(2 * p_size + 1) as i32 {
+        println!("---- {:?}", p_size);
+        println!("i = {}", i);
+        println!("x = {}, y = {}", x, y);
+        println!("dx = {}, dy = {}", dx, dy);
+        end.x = (x + (i - p_size as i32) * dx) as u16;
+        end.y = (y + (i - p_size as i32) * dy) as u16;
+        println!("end = {:?}", end);
+        let cells = line_to_cell(start, &end);
+        for cell in cells {
+            if map.is_position_blocked(cell.x, cell.y) {
+                candidates.push(cell);
+                break;
+            } else {
+                candidates.push(cell);
+            }
+        }
+    }
+
+    for cell in candidates.iter() {
+        map.set_tile_visible(cell.x, cell.y, true);
+    }
+    candidates
 }

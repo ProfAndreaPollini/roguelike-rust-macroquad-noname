@@ -244,6 +244,11 @@ impl Map {
         self.tiles.tile_at(x, y)
     }
 
+    pub fn tile_at_mut(&mut self, x: u16, y: u16) -> Option<&mut Tile> {
+        //self.tiles.get_mut(&index_of((x, y)))
+        self.tiles.tile_at_mut(x, y)
+    }
+
     pub fn is_valid_position(&self, entity: &Entity, x: i32, y: i32) -> bool {
         // let (x, y) = coord_of(index_of((x as u16, y as u16)));
         // let (x, y) = (x as i32, y as i32);

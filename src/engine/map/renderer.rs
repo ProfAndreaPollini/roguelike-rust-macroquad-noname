@@ -45,27 +45,54 @@ impl MapRenderer {
             let sprite_x = x as f32 * texture_manager.cell_size;
             let sprite_y = y as f32 * texture_manager.cell_size;
 
-            let screen_x = (sprite_x - camera.position.x) * zoom + viewport.x;
-            let screen_y = (sprite_y - camera.position.y) * zoom + viewport.y;
+            let screen_x = (sprite_x) * zoom - camera.position.x / camera.zoom + viewport.x;
+            let screen_y = (sprite_y) * zoom - camera.position.y / camera.zoom + viewport.y;
 
             let cell_size = texture_manager.cell_size * zoom;
 
-            self.render_tile(screen_x, screen_y, tile, texture, sprite_rect, cell_size);
+            let screen_pos = camera.world_to_viewport(Vec2::new(sprite_x, sprite_y));
+
+            self.render_tile(
+                screen_pos.x,
+                screen_pos.y,
+                tile,
+                texture,
+                sprite_rect,
+                cell_size,
+            );
 
             // draw items
-            if tile.items().is_empty() {
-                continue;
+            // if tile.items().is_empty() {
+            //     continue;
+            // }
+
+            if tile.explored() {
+                self.highlight_tile(
+                    Vec2::new(x as f32, y as f32),
+                    texture_manager,
+                    camera,
+                    Color::new(0.0, 0.0, 0.0, 0.5),
+                );
             }
 
-            self.render_tile_items(screen_x, screen_y, tile, texture);
+            if tile.visible() {
+                self.highlight_tile(
+                    Vec2::new(x as f32, y as f32),
+                    texture_manager,
+                    camera,
+                    Color::new(1.0, 1.0, 1.0, 0.6),
+                );
+            }
+
+            // self.render_tile_items(screen_pos.x, screen_pos.y, tile, texture);
         }
-        draw_rectangle(
-            viewport.x,
-            viewport.y,
-            viewport.w,
-            viewport.h,
-            Color::new(1.0, 1.0, 1.0, 0.4),
-        );
+        // draw_rectangle(
+        //     viewport.x,
+        //     viewport.y,
+        //     viewport.w,
+        //     viewport.h,
+        //     Color::new(1.0, 1.0, 1.0, 0.4),
+        // );
         // println!(">> ----");
     }
 
@@ -79,14 +106,18 @@ impl MapRenderer {
         let sprite_x = cell.x * texture_manager.cell_size;
         let sprite_y = cell.y * texture_manager.cell_size;
 
-        let screen_x = (sprite_x - camera.position.x) * camera.zoom + camera.viewport.x;
-        let screen_y = (sprite_y - camera.position.y) * camera.zoom + camera.viewport.y;
+        let screen_x =
+            (sprite_x) * camera.zoom - camera.position.x / camera.zoom + camera.viewport.x;
+        let screen_y =
+            (sprite_y) * camera.zoom - camera.position.y / camera.zoom + camera.viewport.y;
 
+        // println!("screen_x = {}, screen_y = {}", screen_x, screen_y);
+        let screen_pos = camera.world_to_viewport(Vec2::new(sprite_x, sprite_y));
         let cell_size = texture_manager.cell_size * camera.zoom;
 
         draw_rectangle(
-            screen_x,
-            screen_y,
+            screen_pos.x,
+            screen_pos.y,
             cell_size,
             cell_size,
             macroquad::color::Color::new(color.r, color.g, color.b, 0.5),
@@ -128,15 +159,17 @@ pub fn render_entity(
     let sprite_x = cell.x * cell_size;
     let sprite_y = cell.y * cell_size;
 
-    let screen_x = (sprite_x - camera.position.x) * camera.zoom + camera.viewport.x;
-    let screen_y = (sprite_y - camera.position.y) * camera.zoom + camera.viewport.y;
+    let screen_x = (sprite_x) * camera.zoom - camera.position.x + camera.viewport.x;
+    let screen_y = (sprite_y) * camera.zoom - camera.position.y + camera.viewport.y;
+
+    let screen_pos = camera.world_to_viewport(Vec2::new(sprite_x, sprite_y));
 
     let cell_size = cell_size * camera.zoom;
 
     draw_texture_ex(
         *texture,
-        screen_x,
-        screen_y,
+        screen_pos.x,
+        screen_pos.y,
         WHITE,
         macroquad::prelude::DrawTextureParams {
             source: Some(sprite_rect),

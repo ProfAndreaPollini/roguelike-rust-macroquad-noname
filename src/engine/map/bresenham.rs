@@ -1,5 +1,7 @@
 use std::mem::swap;
 
+use super::cell::Cell;
+
 /// Returns a vector of cells that form a line between two points using Bresenham's line algorithm.
 ///
 /// # Arguments
@@ -61,6 +63,43 @@ pub fn line(mut x0: isize, mut y0: isize, mut x1: isize, mut y1: isize) -> Vec<(
         cells.reverse();
     }
     cells
+}
+
+/// Returns a vector of cells that form a line between the start and end cells using Bresenham's line algorithm.
+///
+/// # Arguments
+///
+/// * `start` - A reference to the starting cell.
+/// * `end` - A reference to the ending cell.
+///
+/// # Examples
+///
+/// ```
+/// use crate::engine::map::bresenham::line_to_cell;
+/// use crate::engine::map::Cell;
+///
+/// let start = Cell::new(0, 0);
+/// let end = Cell::new(3, 3);
+///
+/// let line = line_to_cell(&start, &end);
+///
+/// assert_eq!(line.len(), 4);
+/// assert_eq!(line[0], Cell::new(0, 0));
+/// assert_eq!(line[1], Cell::new(1, 1));
+/// assert_eq!(line[2], Cell::new(2, 2));
+/// assert_eq!(line[3], Cell::new(3, 3));
+/// ```
+pub fn line_to_cell(start: &Cell, end: &Cell) -> Vec<Cell> {
+    let cells = line(
+        start.x as isize,
+        start.y as isize,
+        end.x as isize,
+        end.y as isize,
+    );
+    cells
+        .iter()
+        .map(|c| Cell::new(c.0 as u16, c.1 as u16))
+        .collect()
 }
 
 #[cfg(test)]

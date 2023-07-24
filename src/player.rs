@@ -1,10 +1,14 @@
-use macroquad::prelude::{is_key_pressed, KeyCode, Vec2};
+use macroquad::{
+    prelude::{is_key_pressed, KeyCode, Vec2, YELLOW},
+    shapes::draw_line,
+};
 
 use crate::{
     actions::{Action, Move},
     engine::{
         core::{
             camera::Camera,
+            direction::Direction,
             entity::{Drawable, Updatable},
             world::{EntityKey, World},
         },
@@ -17,6 +21,7 @@ use crate::{
 pub struct Player {
     pub x: i32,
     pub y: i32,
+    pub direction: Direction,
 }
 
 impl Drawable for Player {
@@ -26,12 +31,31 @@ impl Drawable for Player {
         let sprite_rect = texture_manager.get_sprite("idle");
         let cell_size = texture_manager.cell_size;
 
+        let sprite_x = self.x as f32 * cell_size;
+        let sprite_y = self.y as f32 * cell_size;
+        let screen_pos = camera.world_to_viewport(Vec2::new(sprite_x, sprite_y));
+
+        let final_pos = match self.direction {
+            Direction::Down => screen_pos + Vec2::new(0., cell_size),
+            Direction::Up => screen_pos + Vec2::new(0., -cell_size),
+            Direction::Left => screen_pos + Vec2::new(-cell_size, 0.),
+            Direction::Right => screen_pos + Vec2::new(cell_size, 0.),
+        };
+
         render_entity(
             Vec2::new(self.x as f32, self.y as f32),
             sprite_rect,
             texture,
             cell_size,
             camera,
+        );
+        draw_line(
+            screen_pos.x + cell_size / 2.,
+            screen_pos.y + cell_size / 2.,
+            final_pos.x + cell_size / 2.,
+            final_pos.y + cell_size / 2.,
+            2.,
+            YELLOW,
         );
     }
 }
@@ -108,6 +132,10 @@ impl Updatable for Player {
 
 impl Player {
     pub fn new() -> Self {
-        Self { x: 12, y: 12 }
+        Self {
+            x: 12,
+            y: 12,
+            ..Default::default()
+        }
     }
 }

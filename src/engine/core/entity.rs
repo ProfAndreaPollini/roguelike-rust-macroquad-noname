@@ -13,6 +13,7 @@ use macroquad::{prelude::Vec2, prelude::WHITE, texture::draw_texture_ex};
 
 use super::{
     camera::Camera,
+    direction::Direction,
     world::{EntityKey, World},
 };
 
@@ -159,6 +160,20 @@ impl Entity {
         match self {
             Entity::Player(player) => player.breed.draw(texture_manager, camera),
             Entity::NPC(npc) => npc.breed.draw(texture_manager, camera),
+        }
+    }
+
+    pub fn direction(&self) -> Direction {
+        match self {
+            Entity::Player(player) => player.breed.direction,
+            Entity::NPC(npc) => npc.breed.direction,
+        }
+    }
+
+    pub fn set_direction(&mut self, direction: Direction) {
+        match self {
+            Entity::Player(player) => player.breed.direction = direction,
+            Entity::NPC(npc) => npc.breed.direction = direction,
         }
     }
 

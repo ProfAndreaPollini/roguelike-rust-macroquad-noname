@@ -45,6 +45,13 @@ impl Action {
                 }
 
                 e.move_by(*dx, *dy);
+                match (dx.signum(), dy.signum()) {
+                    (1, 0) => e.set_direction(crate::engine::core::direction::Direction::Right),
+                    (-1, 0) => e.set_direction(crate::engine::core::direction::Direction::Left),
+                    (0, 1) => e.set_direction(crate::engine::core::direction::Direction::Down),
+                    (0, -1) => e.set_direction(crate::engine::core::direction::Direction::Up),
+                    _ => {}
+                }
 
                 ActionResult::Succeeded
             }

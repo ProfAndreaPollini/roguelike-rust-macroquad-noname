@@ -17,14 +17,15 @@ use crate::{
             entity::{Entity, EntityFeatures},
             world::{self, World},
         },
-        fov::compute_fov,
+        fov::{bresenham_fov, compute_fov},
         map::{
+            self,
             builder::{BasicMapBuilder, MapBuilder},
             cell::Cell,
             renderer::MapRenderer,
             Map,
         },
-        texture_manager::TextureManager,
+        texture_manager::{self, TextureManager},
         viewport::{self, Viewport},
     },
     player,
@@ -49,6 +50,7 @@ pub struct GameScene {
     world: World,
     button: Option<Button>,
     font: Option<Font>,
+    visible_cells: Vec<Cell>,
 }
 
 impl GameScene {
@@ -64,8 +66,28 @@ impl GameScene {
             camera: None,
             button: None,
             font: None,
+            visible_cells: Vec::new(),
         }
     }
+
+    // fn update_fov(&mut self) {
+    //     let map = self.map.as_ref().unwrap();
+    //     let world = &mut self.world;
+
+    //     let texture_manager = self.texture_manager.as_ref().unwrap();
+    //     let visible_area = self
+    //         .camera
+    //         .as_ref()
+    //         .unwrap()
+    //         .visible_area(texture_manager.cell_size);
+
+    //     for (index, tile) in map.tiles_visible_from(visible_area) {
+    //         // print!("{} ", index);
+    //         let (x, y) = coord_of(index);
+
+    //         map.set_tile_visible(x, y, false);
+    //     }
+    // }
 }
 
 pub fn update_fov(map: &mut Map, world: &mut World) {
@@ -86,7 +108,7 @@ impl UpdatableScene for GameScene {
         // info!("GameScene setup");
 
         let map = MapBuilder::new(100, 100, HashMap::new())
-            // .add_step(&BasicMapBuilder::default())
+            .add_step(&BasicMapBuilder::default())
             .add_step(&RandomWalkBuilder::default())
             .add_step(&RoomBuilder::default())
             .build();
@@ -102,8 +124,8 @@ impl UpdatableScene for GameScene {
         self.map_renderer = Some(MapRenderer::default());
         self.camera = Some(Camera::new(
             Vec2 { x: 0., y: 0. },
-            2.,
-            Rect::new(100., 100., 800., 600.),
+            1.,
+            Rect::new(50., 50., 900., 900.),
         ));
 
         let mut player = Entity::Player(EntityFeatures::new("player".to_string()));
@@ -138,11 +160,30 @@ impl UpdatableScene for GameScene {
         let entities = self.world.iter().collect::<Vec<&Entity>>();
         let mut actions: Vec<Action> = Vec::new();
 
+        if !self.visible_cells.is_empty() {
+            self.visible_cells.iter().for_each(|c| {
+                map.set_tile_visible(c.x, c.y, false);
+            });
+            self.visible_cells.clear();
+        }
+
         for entity in entities {
             // println!("update entity : {:?}", entity);
 
             let a = entity.update(&self.world, map);
 
+            let pos = entity.position().unwrap();
+
+            if entity.is_player() {
+                let dir = entity.direction();
+                let cells =
+                    bresenham_fov(&Cell::new(pos.0 as u16, pos.1 as u16), &dir, 3, 45., map);
+                // cells.iter().for_each(|c| {
+                //     map.set_tile_visible(c.x, c.y, false);
+                // });
+                println!("cells = {:?}", cells);
+                self.visible_cells = cells;
+            }
             actions.extend(a);
         }
 
@@ -173,9 +214,10 @@ impl UpdatableScene for GameScene {
         );
         println!("p0 = {:?}, p1 = {:?}", p0, p1);
         // self.camera.as_mut().unwrap().position = p0 * tile_size - viewport_size;
-        self.camera.as_mut().unwrap().position = p0 * tile_size - viewport_center;
+        self.camera.as_mut().unwrap().position =
+            p0 * tile_size * camera.zoom - viewport_center * camera.zoom;
         // println!("camera_pos = {:?}", camera_pos);
-        update_fov(self.map.as_mut().unwrap(), &mut self.world);
+        // update_fov(self.map.as_mut().unwrap(), &mut self.world);
         self.button.as_mut().unwrap().update();
 
         if self.button.as_ref().unwrap().clicked() {
@@ -253,6 +295,11 @@ impl UpdatableScene for GameScene {
 
     fn draw_ui(&mut self) {
         let camera = self.camera.as_mut().unwrap();
+        let mouse_pos = macroquad::input::mouse_position();
+
+        let mouse_world_pos = camera.screen_to_world(Vec2::new(mouse_pos.0, mouse_pos.1));
+        let map = self.map.as_ref().unwrap();
+        let texture_manager = self.texture_manager.as_ref().unwrap();
 
         egui_macroquad::ui(|egui_ctx: &egui::Context| {
             egui::Window::new("egui ❤ macroquad").show(egui_ctx, |ui| {
@@ -271,6 +318,20 @@ impl UpdatableScene for GameScene {
                 ui.label("Camera Position: ");
                 ui.add(egui::DragValue::new(&mut camera.position.x).speed(10.));
                 ui.add(egui::DragValue::new(&mut camera.position.y).speed(10.));
+
+                ui.label("Camera Zoom: ");
+                ui.add(egui::DragValue::new(&mut camera.zoom).speed(0.1));
+
+                ui.label("Mouse World Pos: ");
+                ui.label(format!("{:?}", mouse_world_pos));
+                if let Some(tile) = map.tile_at(
+                    (mouse_world_pos.x as f32 / texture_manager.cell_size) as u16,
+                    (mouse_world_pos.y as f32 / texture_manager.cell_size) as u16,
+                ) {
+                    ui.label(format!("Tile: {:?}", tile));
+                    ui.label(format!("Tile visible: {:?}", tile.visible()));
+                    ui.label(format!("Tile explored: {:?}", tile.explored()));
+                }
             });
         });
     }

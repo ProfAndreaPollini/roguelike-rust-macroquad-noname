@@ -12,6 +12,7 @@ use self::entity::{Entity, EntityFeatures};
 use super::{fov::compute_fov, texture_manager::TextureManager, viewport::Viewport};
 
 pub mod camera;
+pub mod direction;
 pub mod entity;
 pub mod world;
 
