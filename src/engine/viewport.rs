@@ -63,6 +63,6 @@ impl Viewport {
 
     pub fn center(&self) -> Vec2 {
         let offset = self.1;
-        -1.0 * self.0.center() + offset
+        self.0.center() + offset
     }
 }

@@ -40,6 +40,16 @@ impl Tile {
         }
     }
 
+    pub fn sprite_name(&self) -> Option<&str> {
+        if self.visible {
+            Some(&self.visible_sprite_name)
+        } else if self.explored {
+            Some(&self.explored_sprite_name)
+        } else {
+            Some(&self.visible_sprite_name)
+        }
+    }
+
     pub fn visible(&self) -> bool {
         self.visible
     }

@@ -64,6 +64,17 @@ impl World {
     pub fn keys(&self) -> Vec<EntityKey> {
         self.entities.keys().collect::<Vec<EntityKey>>()
     }
+
+    pub fn player_mut(&mut self) -> Option<&mut Entity> {
+        self.entities
+            .values_mut()
+            .find(|e| e.is_player())
+            .map(|e| e.borrow_mut())
+    }
+
+    pub fn player(&self) -> Option<&Entity> {
+        self.entities.values().find(|e| e.is_player()).map(|e| e)
+    }
 }
 
 // tests

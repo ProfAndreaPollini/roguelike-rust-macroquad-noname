@@ -3,7 +3,9 @@ mod engine;
 mod npc;
 mod player;
 mod random_walk_builder;
+mod room_builder;
 mod scenes;
+pub mod ui;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -19,6 +21,7 @@ use macroquad::prelude::*;
 
 use macroquad::ui::{hash, root_ui, widgets};
 use random_walk_builder::RandomWalkBuilder;
+use room_builder::RoomBuilder;
 use scenes::events::SceneEvent;
 
 use scenes::{Scene, UpdatableScene};
@@ -57,9 +60,13 @@ async fn main() {
 
     texture_manager.load_from_json("assets/config.json");
 
+    let font = load_ttf_font("assets/fonts/dealerplate_california.otf")
+        .await
+        .unwrap();
+
     let mut scenes = HashMap::<Scene, Rc<RefCell<dyn UpdatableScene>>>::new();
 
-    let intro_scene = scenes::intro_scene::IntroScene {};
+    let intro_scene = scenes::intro_scene::IntroScene::new();
     scenes.insert(Scene::Intro, Rc::new(RefCell::new(intro_scene)));
 
     let game_scene = scenes::game_scene::GameScene::new();
@@ -73,6 +80,7 @@ async fn main() {
 
     let context = Rc::new(scenes::SceneContext {
         texture_manager: Some(Rc::new(texture_manager)),
+        font: Some(Rc::new(font)),
     });
 
     current_scene.borrow_mut().setup(context.clone());
@@ -83,6 +91,7 @@ async fn main() {
 
         current_scene.borrow_mut().update();
         current_scene.borrow_mut().draw();
+        current_scene.borrow_mut().draw_ui();
 
         widgets::Window::new(hash!(), vec2(400., 200.), vec2(320., 400.))
             .label("Shop")
@@ -94,33 +103,33 @@ async fn main() {
 
         let pos = engine.entity_at(0).position().unwrap();
 
-        egui_macroquad::ui(|egui_ctx: &egui::Context| {
-            egui::Window::new("egui ❤ macroquad").show(egui_ctx, |ui| {
-                //display fps
-                ui.label(format!("FPS: {}", get_fps()));
+        // egui_macroquad::ui(|egui_ctx: &egui::Context| {
+        //     egui::Window::new("egui ❤ macroquad").show(egui_ctx, |ui| {
+        //         //display fps
+        //         ui.label(format!("FPS: {}", get_fps()));
 
-                ui.label("Test");
-                ui.label("ViewPort: ");
-                ui.label(format!("{:?}", engine.viewport()));
-                let mut binding = engine.viewport_m();
-                let offset = binding.offset_mut();
+        //         ui.label("Test");
+        //         ui.label("ViewPort: ");
+        //         ui.label(format!("{:?}", engine.viewport()));
+        //         let mut binding = engine.viewport_m();
+        //         let offset = binding.offset_mut();
 
-                ui.add(egui::DragValue::new(&mut offset.x).speed(0.1));
-                ui.add(egui::DragValue::new(&mut offset.y).speed(0.1));
+        //         ui.add(egui::DragValue::new(&mut offset.x).speed(0.1));
+        //         ui.add(egui::DragValue::new(&mut offset.y).speed(0.1));
 
-                let mut binding2 = binding.clone();
-                let rect = binding2.rect_mut();
-                ui.label("Rect: ");
-                ui.add(egui::DragValue::new(&mut rect.x).speed(0.1));
-                ui.add(egui::DragValue::new(&mut rect.y).speed(0.1));
+        //         let mut binding2 = binding.clone();
+        //         let rect = binding2.rect_mut();
+        //         ui.label("Rect: ");
+        //         ui.add(egui::DragValue::new(&mut rect.x).speed(0.1));
+        //         ui.add(egui::DragValue::new(&mut rect.y).speed(0.1));
 
-                ui.add(egui::DragValue::new(&mut rect.w).speed(0.1));
-                ui.add(egui::DragValue::new(&mut rect.h).speed(0.1));
+        //         ui.add(egui::DragValue::new(&mut rect.w).speed(0.1));
+        //         ui.add(egui::DragValue::new(&mut rect.h).speed(0.1));
 
-                ui.label("Player: ");
-                ui.label(format!("{:?}", pos));
-            });
-        });
+        //         ui.label("Player: ");
+        //         ui.label(format!("{:?}", pos));
+        //     });
+        // });
 
         //get all key pressed this frame
         let keys_pressed_this_frame = get_last_key_pressed();

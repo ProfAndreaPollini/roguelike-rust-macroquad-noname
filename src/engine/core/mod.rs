@@ -11,6 +11,7 @@ use self::entity::{Entity, EntityFeatures};
 
 use super::{fov::compute_fov, texture_manager::TextureManager, viewport::Viewport};
 
+pub mod camera;
 pub mod entity;
 pub mod world;
 
@@ -98,12 +99,12 @@ impl EngineRepr {
     pub fn render(&self) {
         self.map.draw(&self.texture_manager, &self.viewport);
 
-        self.entities[0].draw(&self.texture_manager, &self.viewport);
+        // self.entities[0].draw(&self.texture_manager, &self.viewport);
 
         // get entities from index 1 to the end
-        self.entities[1..]
-            .iter()
-            .for_each(|x| x.draw(&self.texture_manager, &self.viewport));
+        // self.entities[1..]
+        //     .iter()
+        //     .for_each(|x| x.draw(&self.texture_manager, &self.viewport));
     }
 
     pub fn update_fov(&mut self) {

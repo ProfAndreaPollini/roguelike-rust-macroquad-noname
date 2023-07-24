@@ -1,5 +1,8 @@
 use crate::engine::{
-    core::entity::{draw_sprite, Drawable, Updatable},
+    core::{
+        camera::Camera,
+        entity::{draw_sprite, Drawable, Updatable},
+    },
     texture_manager::TextureManager,
     viewport::Viewport,
 };
@@ -11,20 +14,20 @@ pub struct NPC {
 }
 
 impl Drawable for NPC {
-    fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {
+    fn draw(&self, texture_manager: &TextureManager, camera: &Camera) {
         let texture = &texture_manager.texture;
         let idle_sprite = texture_manager.get_sprite("npc01");
 
-        let center = viewport.center();
+        // let center = viewport.center();
 
-        draw_sprite(
-            texture,
-            self.x,
-            self.y,
-            viewport,
-            texture_manager.cell_output_size(),
-            idle_sprite,
-        );
+        // draw_sprite(
+        //     texture,
+        //     self.x,
+        //     self.y,
+        //     viewport,
+        //     texture_manager.cell_output_size(),
+        //     idle_sprite,
+        // );
     }
 }
 

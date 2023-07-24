@@ -11,10 +11,13 @@ use delegate::delegate;
 
 use macroquad::{prelude::Vec2, prelude::WHITE, texture::draw_texture_ex};
 
-use super::world::{EntityKey, World};
+use super::{
+    camera::Camera,
+    world::{EntityKey, World},
+};
 
 pub trait Drawable {
-    fn draw(&self, _texture_manager: &TextureManager, _viewport: &Viewport) {}
+    fn draw(&self, _texture_manager: &TextureManager, _viewport: &Camera) {}
 }
 
 pub trait Updatable {
@@ -152,10 +155,10 @@ impl Entity {
         None
     }
 
-    pub fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {
+    pub fn draw(&self, texture_manager: &TextureManager, camera: &Camera) {
         match self {
-            Entity::Player(player) => player.breed.draw(texture_manager, viewport),
-            Entity::NPC(npc) => npc.breed.draw(texture_manager, viewport),
+            Entity::Player(player) => player.breed.draw(texture_manager, camera),
+            Entity::NPC(npc) => npc.breed.draw(texture_manager, camera),
         }
     }
 

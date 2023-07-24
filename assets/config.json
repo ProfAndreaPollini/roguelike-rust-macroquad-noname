@@ -5,8 +5,8 @@
             "col": 0
         },
         "floor": {
-            "row": 0,
-            "col": 0
+            "row": 5,
+            "col": 5
         },
         "wall": {
             "row": 2,

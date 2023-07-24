@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use macroquad::text::Font;
+
 use crate::engine::{core::Engine, texture_manager::TextureManager};
 
 use self::events::SceneCommands;
@@ -23,9 +25,11 @@ pub trait UpdatableScene {
     fn setup(&mut self, context: Rc<SceneContext>) {}
     fn update(&mut self) {}
     fn draw(&self) {}
+    fn draw_ui(&mut self) {}
 }
 
 #[derive(Debug, Default)]
 pub struct SceneContext {
     pub texture_manager: Option<Rc<TextureManager>>,
+    pub font: Option<Rc<Font>>,
 }

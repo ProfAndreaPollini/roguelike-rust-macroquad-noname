@@ -51,7 +51,7 @@ impl<'a> MapBuilderAlgorithm<'a> for BasicMapBuilder {
 
         for x in 0..map_builder.width {
             for y in 0..map_builder.height {
-                let tile = if noise(x as f64 / 3., y as f64 / 3.).abs() > 0. {
+                let tile = if noise(x as f64 / 1., y as f64 / 1.).abs() > 0. {
                     Tile::new("floor".to_string(), "floor".to_string())
                     // tile.add_sprite("floor", 2, 2);
                 } else {

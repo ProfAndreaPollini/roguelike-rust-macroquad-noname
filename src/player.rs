@@ -1,15 +1,15 @@
-use macroquad::prelude::{is_key_pressed, KeyCode};
+use macroquad::prelude::{is_key_pressed, KeyCode, Vec2};
 
 use crate::{
-    actions::{Action, ActionResult, Move},
+    actions::{Action, Move},
     engine::{
         core::{
-            entity::{draw_sprite, Drawable, Updatable},
+            camera::Camera,
+            entity::{Drawable, Updatable},
             world::{EntityKey, World},
         },
-        map::Map,
+        map::{renderer::render_entity, Map},
         texture_manager::TextureManager,
-        viewport::Viewport,
     },
 };
 
@@ -20,26 +20,25 @@ pub struct Player {
 }
 
 impl Drawable for Player {
-    fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {
-        println!("Player draw");
+    fn draw(&self, texture_manager: &TextureManager, camera: &Camera) {
+        // println!("Player draw");
         let texture = &texture_manager.texture;
-        //...draw_sprite("idle", 0, 0);
-        let idle_sprite = texture_manager.get_sprite("idle");
+        let sprite_rect = texture_manager.get_sprite("idle");
+        let cell_size = texture_manager.cell_size;
 
-        draw_sprite(
+        render_entity(
+            Vec2::new(self.x as f32, self.y as f32),
+            sprite_rect,
             texture,
-            self.x,
-            self.y,
-            viewport,
-            texture_manager.cell_output_size(),
-            idle_sprite,
+            cell_size,
+            camera,
         );
     }
 }
 
 impl Updatable for Player {
     fn update(&self, map: &mut Map, world: &World, key: EntityKey) -> Vec<Action> {
-        println!("Player update");
+        // println!("Player update");
 
         let mut actions: Vec<Action> = vec![];
 

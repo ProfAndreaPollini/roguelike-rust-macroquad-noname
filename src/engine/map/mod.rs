@@ -1,17 +1,23 @@
 #![allow(dead_code, unused_variables)]
 use std::collections::HashMap;
 
+pub mod bresenham;
 pub mod builder;
+pub mod cell;
+pub mod renderer;
+
 pub mod tile;
 
 use macroquad::{
-    prelude::WHITE, shapes::draw_rectangle, text::draw_text, texture::draw_texture_ex,
+    prelude::{Rect, RectOffset, WHITE},
+    shapes::draw_rectangle,
+    texture::draw_texture_ex,
 };
 use tile::Tile;
 
 use zorder::{coord_of, index_of};
 
-use self::tile::CellType;
+use self::{cell::Cell, tile::CellType};
 
 use super::{core::entity::Entity, viewport::Viewport};
 
@@ -54,6 +60,7 @@ pub struct Map {
     pub width: u32,
     pub height: u32,
     pub tiles: MapTiles,
+    pub cells: HashMap<u32, Cell>,
 }
 
 impl Map {
@@ -62,7 +69,44 @@ impl Map {
             width,
             height,
             tiles: MapTiles::new(),
+            cells: HashMap::new(),
         }
+    }
+
+    /// Returns a vector of tiles and their indices that are visible from a given rectangle.
+    ///
+    /// # Arguments
+    ///
+    /// * `rect` - A `Rect` struct representing the area to check for visible tiles.
+    ///
+    /// # Returns
+    ///
+    /// A vector of tuples, where the first element is the index of the tile and the second element is a reference to the tile itself.
+    pub fn tiles_visible_from(&self, rect: Rect) -> Vec<(u32, &Tile)> {
+        let mut tiles = vec![];
+        let start_x = rect.x as u32;
+        let start_y = rect.y as u32;
+        let end_x = (rect.x + rect.w) as u32;
+        let end_y = (rect.y + rect.h) as u32;
+
+        // println!(
+        //     "tiles_visible_from ->{} {} {} {}",
+        //     start_x, start_y, end_x, end_y
+        // );
+
+        for x in start_x..end_x {
+            for y in start_y..end_y {
+                let tile = self.tile_at(x as u16, y as u16);
+                if tile.is_none() {
+                    // print!("no tile at {} {}", x, y);
+                    continue;
+                }
+                // println!("tile at {} {} [{}]", x, y, tiles.len());
+                tiles.push((index_of((x as u16, y as u16)), tile.unwrap()));
+            }
+        }
+
+        tiles
     }
 
     pub fn set_tile_visible(&mut self, x: u16, y: u16, visible: bool) {
@@ -105,6 +149,10 @@ impl Map {
         //     tile.set_visible(visible);
         //     // tile.set_explored(true);
         // });
+    }
+
+    pub fn get_cell(&self, x: u16, y: u16) -> Option<&Cell> {
+        self.cells.get(&index_of((x, y)))
     }
 
     pub fn draw(
@@ -172,14 +220,14 @@ impl Map {
                 );
             }
 
-            let s = format!("({x},{y})");
-            draw_text(
-                &s,
-                (x as f32 + center.x) * texture_manager.cell_output_size().x,
-                (y as f32 + center.y) * texture_manager.cell_output_size().y,
-                12.,
-                WHITE,
-            );
+            // let s = format!("({x},{y})");
+            // draw_text(
+            //     &s,
+            //     (x as f32 + center.x) * texture_manager.cell_output_size().x,
+            //     (y as f32 + center.y) * texture_manager.cell_output_size().y,
+            //     12.,
+            //     WHITE,
+            // );
 
             // draw viewport rectangle border
         }
@@ -188,6 +236,7 @@ impl Map {
     pub fn add_tile(&mut self, x: u16, y: u16, tile: Tile) {
         //self.tiles.insert(index_of((x, y)), tile);
         self.tiles.add_tile(x, y, tile);
+        self.cells.insert(index_of((x, y)), Cell::new(x, y));
     }
 
     pub fn tile_at(&self, x: u16, y: u16) -> Option<&Tile> {
