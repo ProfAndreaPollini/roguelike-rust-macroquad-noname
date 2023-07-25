@@ -3,7 +3,7 @@ use rand::thread_rng;
 use crate::engine::{
     items::{Gold, Item},
     level::{Dimension, Room},
-    map::{builder::MapBuilderAlgorithm, cell::Cell},
+    map::{self, builder::MapBuilderAlgorithm, cell::Cell},
 };
 
 #[derive(Debug, Default)]
@@ -24,6 +24,22 @@ impl<'a> MapBuilderAlgorithm<'a> for RoomBuilder {
         room =
             Room::create_random_in_rect(Cell::new(12, 12), Dimension::new(20, 20), (5..15, 5..15));
         rooms.push(room);
+
+        let mut attempts = 0;
+        while rooms.len() < 10 && attempts < 1000 {
+            let candidate = Room::create_random_in_rect(
+                Cell::new(3, 3),
+                Dimension::new(80, 80),
+                (10..25, 10..25),
+            );
+            for room in rooms.iter() {
+                if candidate.intersects(room) {
+                    attempts += 1;
+                    continue;
+                }
+            }
+            rooms.push(candidate);
+        }
 
         for room in rooms.iter() {
             for cell in room.interior_cells() {
@@ -65,6 +81,8 @@ impl<'a> MapBuilderAlgorithm<'a> for RoomBuilder {
                 map_builder.map_tiles.add_tile(cell.x, cell.y, tile);
             }
         }
+
+        map_builder.rooms = rooms;
 
         map_builder
     }

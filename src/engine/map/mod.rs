@@ -13,13 +13,14 @@ use macroquad::{
     shapes::draw_rectangle,
     texture::draw_texture_ex,
 };
+use rand::Rng;
 use tile::Tile;
 
 use zorder::{coord_of, index_of};
 
 use self::{cell::Cell, tile::CellType};
 
-use super::{core::entity::Entity, viewport::Viewport};
+use super::{core::entity::Entity, level::Room, viewport::Viewport};
 
 #[derive(Debug, Clone)]
 pub struct MapTiles {
@@ -61,6 +62,7 @@ pub struct Map {
     pub height: u32,
     pub tiles: MapTiles,
     pub cells: HashMap<u32, Cell>,
+    pub rooms: Vec<Room>,
 }
 
 impl Map {
@@ -70,7 +72,14 @@ impl Map {
             height,
             tiles: MapTiles::new(),
             cells: HashMap::new(),
+            rooms: vec![],
         }
+    }
+
+    pub fn get_random_room_center(&self) -> Cell {
+        let mut rng = rand::thread_rng();
+        let index = rng.gen_range(0..self.rooms.len());
+        self.rooms.get(index).clone().unwrap().center()
     }
 
     /// Returns a vector of tiles and their indices that are visible from a given rectangle.

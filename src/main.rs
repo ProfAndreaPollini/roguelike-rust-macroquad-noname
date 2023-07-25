@@ -106,15 +106,15 @@ async fn main() {
 
         current_scene.borrow_mut().draw_ui();
 
-        widgets::Window::new(hash!(), vec2(400., 200.), vec2(320., 400.))
-            .label("Shop")
-            .titlebar(true)
-            // .movable(false)
-            .ui(&mut root_ui(), |ui| {
-                ui.label(Vec2::new(50., 50.), "Hello World!");
-            });
+        // widgets::Window::new(hash!(), vec2(400., 200.), vec2(320., 400.))
+        //     .label("Shop")
+        //     .titlebar(true)
+        //     // .movable(false)
+        //     .ui(&mut root_ui(), |ui| {
+        //         ui.label(Vec2::new(50., 50.), "Hello World!");
+        //     });
 
-        let pos = engine.entity_at(0).position().unwrap();
+        // let pos = engine.entity_at(0).position().unwrap();
 
         // egui_macroquad::ui(|egui_ctx: &egui::Context| {
         //     egui::Window::new("egui ❤ macroquad").show(egui_ctx, |ui| {

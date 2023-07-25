@@ -1,4 +1,8 @@
+use std::fmt::Display;
 use std::mem::swap;
+use std::ops::{AddAssign, MulAssign, Sub, SubAssign};
+
+use num_traits::Signed;
 
 use super::cell::Cell;
 
@@ -21,9 +25,27 @@ use super::cell::Cell;
 ///
 /// reference: https://phinjensen.com/blog/2022/rustyrender-bresenhams-line-drawing-algorithm/
 /// ```
-pub fn line(mut x0: isize, mut y0: isize, mut x1: isize, mut y1: isize) -> Vec<(isize, isize)> {
+pub fn line<
+    T: Sub
+        + Signed
+        + PartialOrd
+        + MulAssign
+        + AddAssign
+        + SubAssign
+        + From<i32>
+        + Copy
+        + Display
+        + std::fmt::Debug,
+>(
+    mut x0: T,
+    mut y0: T,
+    mut x1: T,
+    mut y1: T,
+) -> Vec<(T, T)> {
     let steep = (x0 - x1).abs() < (y0 - y1).abs();
-    let reverse_output = x0 > x1;
+    // let reverse_output = x0 > x1;
+    let start_x = x0;
+    let start_y = y0;
     if steep {
         swap(&mut x0, &mut y0);
         swap(&mut x1, &mut y1);
@@ -35,11 +57,11 @@ pub fn line(mut x0: isize, mut y0: isize, mut x1: isize, mut y1: isize) -> Vec<(
 
     let dx = x1 - x0;
     let dy = y1 - y0;
-    let derror2 = dy.abs() * 2;
-    let mut error2 = 0;
+    let derror2: T = dy.abs() * T::from(2);
+    let mut error2 = T::from(0);
     let mut y = y0;
 
-    let mut cells: Vec<(isize, isize)> = vec![];
+    let mut cells: Vec<(T, T)> = vec![];
 
     let mut x = x0;
     while x <= x1 {
@@ -54,12 +76,14 @@ pub fn line(mut x0: isize, mut y0: isize, mut x1: isize, mut y1: isize) -> Vec<(
         error2 += derror2;
 
         if error2 > dx {
-            y += if y1 > y0 { 1 } else { -1 };
-            error2 -= dx * 2;
+            y += if y1 > y0 { T::from(1) } else { T::from(-1) };
+            error2 -= dx * T::from(2);
         }
-        x += 1;
+        x += T::from(1);
     }
-    if reverse_output {
+    println!("cells: {:?}", cells);
+    if cells[0].0 != start_x && cells[0].1 != start_y {
+        println!("cells[0] != x0 || cells[0] != y0");
         cells.reverse();
     }
     cells
@@ -90,12 +114,7 @@ pub fn line(mut x0: isize, mut y0: isize, mut x1: isize, mut y1: isize) -> Vec<(
 /// assert_eq!(line[3], Cell::new(3, 3));
 /// ```
 pub fn line_to_cell(start: &Cell, end: &Cell) -> Vec<Cell> {
-    let cells = line(
-        start.x as isize,
-        start.y as isize,
-        end.x as isize,
-        end.y as isize,
-    );
+    let cells = line(start.x as i32, start.y as i32, end.x as i32, end.y as i32);
     cells
         .iter()
         .map(|c| Cell::new(c.0 as u16, c.1 as u16))

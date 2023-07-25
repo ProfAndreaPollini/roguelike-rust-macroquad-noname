@@ -26,7 +26,7 @@ impl Dimension {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Room {
     top_left: Cell,
     width: u16,
@@ -74,14 +74,14 @@ impl Room {
         cells
     }
 
-    fn intersects(&self, other: &Room) -> bool {
+    pub fn intersects(&self, other: &Room) -> bool {
         self.top_left.x <= other.top_left.x + other.width
             && self.top_left.x + self.width >= other.top_left.x
             && self.top_left.y <= other.top_left.y + other.height
             && self.top_left.y + self.height >= other.top_left.y
     }
 
-    fn center(&self) -> Cell {
+    pub fn center(&self) -> Cell {
         println!("center: {:?}", self);
         let center_x = self.top_left.x + (self.width / 2);
         let center_y = self.top_left.y + (self.height / 2);

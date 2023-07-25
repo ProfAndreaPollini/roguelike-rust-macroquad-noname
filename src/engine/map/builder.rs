@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use noise::{NoiseFn, Perlin, Seedable};
 
+use crate::engine::level::Room;
+
 use super::{
     tile::{CellType, Tile},
     Map, MapTiles,
@@ -16,6 +18,7 @@ pub struct MapBuilder {
     pub height: u32,
     /// The tiles that make up the map.
     pub map_tiles: MapTiles,
+    pub rooms: Vec<Room>,
     /// The different types of tiles that can be used to build the map.
     tiles: HashMap<String, Tile>,
 }
@@ -78,6 +81,7 @@ impl MapBuilder {
             height,
             map_tiles: MapTiles::new(),
             tiles,
+            rooms: vec![],
         }
     }
 
@@ -99,6 +103,7 @@ impl MapBuilder {
     pub fn build(&self) -> Map {
         let mut map = Map::new(self.width, self.height);
         map.tiles = self.map_tiles.clone();
+        map.rooms = self.rooms.clone();
         map
     }
 }

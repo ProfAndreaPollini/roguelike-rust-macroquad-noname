@@ -44,10 +44,10 @@ impl Cell {
 
     pub fn line_to(&self, target: &Cell) -> Vec<u32> {
         bresenham::line(
-            self.x as isize,
-            self.y as isize,
-            target.x as isize,
-            target.y as isize,
+            self.x as i32,
+            self.y as i32,
+            target.x as i32,
+            target.y as i32,
         )
         .iter()
         .map(|p| index_of((p.0 as u16, p.1 as u16)))

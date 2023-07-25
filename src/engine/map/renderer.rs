@@ -66,7 +66,7 @@ impl MapRenderer {
             //     continue;
             // }
 
-            if tile.explored() {
+            if tile.explored() && !tile.visible() {
                 self.highlight_tile(
                     Vec2::new(x as f32, y as f32),
                     texture_manager,
@@ -75,12 +75,12 @@ impl MapRenderer {
                 );
             }
 
-            if tile.visible() {
+            if !tile.explored() && !tile.visible() {
                 self.highlight_tile(
                     Vec2::new(x as f32, y as f32),
                     texture_manager,
                     camera,
-                    Color::new(1.0, 1.0, 1.0, 0.6),
+                    Color::new(1.0, 1.0, 0.0, 0.9),
                 );
             }
 

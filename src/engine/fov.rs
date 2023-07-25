@@ -1,6 +1,8 @@
 #![allow(dead_code, unused_variables)]
 use macroquad::prelude::IVec2;
 
+use crate::engine::map::bresenham::line;
+
 use super::{
     core::direction::Direction,
     map::{bresenham::line_to_cell, cell::Cell, Map},
@@ -281,54 +283,84 @@ pub fn bresenham_fov(
     let mut dy = 0;
     let mut end = Cell::new(0, 0);
 
-    match direction {
-        Direction::Down => {
-            let mut p = start.clone();
+    let start_x = start.x as i32;
+    let start_y = start.y as i32;
 
-            x = ((start.x - p_size) as i32).max(0);
-            y = ((start.y + depth) as i32).max(0);
-            dx = 1;
-            dy = 0;
-        }
-        Direction::Up => {
-            let mut p = start.clone();
+    let mut direction_angle = match direction {
+        Direction::Up => 0.0,
+        Direction::Right => 90.0,
+        Direction::Down => 180.0,
+        Direction::Left => 270.0,
+    };
 
-            x = ((start.x - p_size) as i32).max(0);
-            y = ((start.y - depth) as i32).max(0);
-            dx = 1;
-            dy = 1;
-        }
-        Direction::Left => {
-            x = ((start.x - depth) as i32).max(0);
-            y = ((start.y - p_size) as i32).max(0);
-            dy = 1;
-            dx = 0;
-        }
-        Direction::Right => {
-            x = ((start.x + depth) as i32).max(0);
-            y = ((start.y - p_size) as i32).max(0);
-            dy = 1;
-            dx = 0;
+    direction_angle -= 90.;
+
+    let start_angle = direction_angle - angle * 0.5;
+    let end_angle = direction_angle + angle * 0.5;
+
+    // if start_angle < 0.0 {
+    //     start_angle += 360.0;
+    // }
+
+    // if end_angle > 360.0 {
+    //     end_angle -= 360.0;
+    // }
+
+    // println!("start_x = {}, start_y = {}", start_x, start_y);
+    // println!("start_angle = {}, end_angle = {}", start_angle, end_angle);
+
+    let start_pos_x = (start_x as f32 + depth as f32 * start_angle.to_radians().cos()) as i32;
+    let start_pos_y = (start_y as f32 + depth as f32 * start_angle.to_radians().sin()) as i32;
+    // println!("start_x = {}, start_y = {}", end_x, end_y);
+
+    let end_pos_x = (start_x as f32 + depth as f32 * end_angle.to_radians().cos()) as i32;
+    let end_pos_y = (start_y as f32 + depth as f32 * end_angle.to_radians().sin()) as i32;
+    // println!("end_x = {}, end_y = {}", end_x, end_y);
+
+    // println!(
+    //     "start_pos_x = {}, start_pos_y = {} end_pos__x = {}, end_pos_y = {}",
+    //     start_pos_x, start_pos_y, end_pos_x, end_pos_y
+    // );
+
+    let targets = line(start_pos_x, start_pos_y, end_pos_x, end_pos_y);
+
+    let mut points = Vec::<(i32, i32)>::new();
+
+    for target in targets {
+        // println!(
+        //     "dx = {}, dy = {} start =({},{}) end = ({},  {})",
+        //     dx, dy, start_x, start_y, target.0, target.1
+        // );
+        let mut line_pos = line(start_x, start_y, target.0, target.1);
+        // println!("line_pos = {:?}", line_pos);
+        line_pos.retain(|&x| x.0 >= 0 && x.1 >= 0);
+        // println!("line_pos after = {:?}", line_pos);
+        for pos in line_pos {
+            // check if the point is inside the map
+            // if pos.0 < 0 || pos.1 < 0 {
+            //     break;
+            // }
+
+            // check if the point is a blocking tile
+            if map.is_position_blocked(pos.0 as u16, pos.1 as u16) {
+                points.push(pos);
+                break;
+            }
+            points.push(pos);
         }
     }
 
-    for i in 0..(2 * p_size + 1) as i32 {
-        println!("---- {:?}", p_size);
-        println!("i = {}", i);
-        println!("x = {}, y = {}", x, y);
-        println!("dx = {}, dy = {}", dx, dy);
-        end.x = (x + (i - p_size as i32) * dx) as u16;
-        end.y = (y + (i - p_size as i32) * dy) as u16;
-        println!("end = {:?}", end);
-        let cells = line_to_cell(start, &end);
-        for cell in cells {
-            if map.is_position_blocked(cell.x, cell.y) {
-                candidates.push(cell);
-                break;
-            } else {
-                candidates.push(cell);
-            }
-        }
+    // filter points to remove duplicates
+    points.sort();
+    points.dedup();
+
+    // filter points with negative values
+
+    // populate candidates from points
+    for point in points {
+        let cell = Cell::new(point.0 as u16, point.1 as u16);
+
+        candidates.push(cell);
     }
 
     for cell in candidates.iter() {

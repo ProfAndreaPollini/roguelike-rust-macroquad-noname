@@ -46,7 +46,8 @@ impl Tile {
         } else if self.explored {
             Some(&self.explored_sprite_name)
         } else {
-            Some(&self.visible_sprite_name)
+            // Some(&self.visible_sprite_name)
+            None
         }
     }
 

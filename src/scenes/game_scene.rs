@@ -116,7 +116,7 @@ impl UpdatableScene for GameScene {
         let x = context.texture_manager.as_ref().unwrap().clone();
 
         self.texture_manager = Some(x);
-
+        let room_center = map.get_random_room_center();
         self.map = Some(map);
         // let viewport = Viewport::new(0.0, 0.0, 40.0, 30.0, Vec2::new(17.5, 18.7));
         // self.viewport = Some(viewport);
@@ -129,7 +129,8 @@ impl UpdatableScene for GameScene {
         ));
 
         let mut player = Entity::Player(EntityFeatures::new("player".to_string()));
-        player.move_to(10, 10);
+
+        player.move_to(room_center.x as i32, room_center.y as i32);
 
         self.world.create_entity(player);
 
@@ -177,7 +178,7 @@ impl UpdatableScene for GameScene {
             if entity.is_player() {
                 let dir = entity.direction();
                 let cells =
-                    bresenham_fov(&Cell::new(pos.0 as u16, pos.1 as u16), &dir, 3, 45., map);
+                    bresenham_fov(&Cell::new(pos.0 as u16, pos.1 as u16), &dir, 10, 80., map);
                 // cells.iter().for_each(|c| {
                 //     map.set_tile_visible(c.x, c.y, false);
                 // });
@@ -227,13 +228,13 @@ impl UpdatableScene for GameScene {
 
     fn draw(&self) {
         // debug!("GameScene draw");
-        draw_text(
-            "GAME!!!!!",
-            screen_width() / 2.,
-            screen_height() / 2.,
-            120.,
-            WHITE,
-        );
+        // draw_text(
+        //     "GAME!!!!!",
+        //     screen_width() / 2.,
+        //     screen_height() / 2.,
+        //     120.,
+        //     WHITE,
+        // );
 
         let mut y = 50.;
 
@@ -259,23 +260,23 @@ impl UpdatableScene for GameScene {
             e.draw(texture_manager, self.camera.as_ref().unwrap());
         });
 
-        let player_pos = world.player().unwrap().position().unwrap();
+        // let player_pos = world.player().unwrap().position().unwrap();
 
-        let pos = (player_pos.0 as u16, player_pos.1 as u16);
-        let c = Cell::new(pos.0, pos.1);
+        // let pos = (player_pos.0 as u16, player_pos.1 as u16);
+        // let c = Cell::new(pos.0, pos.1);
 
-        let path = c.line_to(&Cell::new(10, 10));
+        // let path = c.line_to(&Cell::new(10, 10));
 
-        for p in path {
-            let (x, y) = coord_of(p);
-            // print!("{} {} -> ", x, y);
-            self.map_renderer.as_ref().unwrap().highlight_tile(
-                Vec2::new(x as f32, y as f32),
-                texture_manager,
-                self.camera.as_ref().unwrap(),
-                Color::new(0., 1., 0., 0.5),
-            );
-        }
+        // for p in path {
+        //     let (x, y) = coord_of(p);
+        //     // print!("{} {} -> ", x, y);
+        //     self.map_renderer.as_ref().unwrap().highlight_tile(
+        //         Vec2::new(x as f32, y as f32),
+        //         texture_manager,
+        //         self.camera.as_ref().unwrap(),
+        //         Color::new(0., 1., 0., 0.5),
+        //     );
+        // }
 
         // if let Some(camera) = self.camera.as_ref() {
         //     // let (x, y) = (camera.position.x as u16, camera.position.y as u16);

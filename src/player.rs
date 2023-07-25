@@ -130,12 +130,12 @@ impl Updatable for Player {
     }
 }
 
-impl Player {
-    pub fn new() -> Self {
-        Self {
-            x: 12,
-            y: 12,
-            ..Default::default()
-        }
-    }
-}
+// impl Player {
+//     pub fn new() -> Self {
+//         Self {
+//             x: 12,
+//             y: 12,
+//             ..Default::default()
+//         }
+//     }
+// }

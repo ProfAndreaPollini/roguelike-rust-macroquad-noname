@@ -48,30 +48,25 @@ impl Corridor {
 
         self.cells.push(Cell::new(x, y));
 
-        let mut bresenham_cells = Vec::<(isize, isize)>::new();
+        let mut bresenham_cells = Vec::<(i32, i32)>::new();
+        for c in line(x as i32, y as i32, self.end_x as i32, self.end_y as i32) {
+            bresenham_cells.push(c);
+        }
+
         for c in line(
-            x as isize,
-            y as isize,
-            self.end_x as isize,
-            self.end_y as isize,
+            (x + 1) as i32,
+            y as i32,
+            self.end_x as i32,
+            self.end_y as i32,
         ) {
             bresenham_cells.push(c);
         }
 
         for c in line(
-            (x + 1) as isize,
-            y as isize,
-            self.end_x as isize,
-            self.end_y as isize,
-        ) {
-            bresenham_cells.push(c);
-        }
-
-        for c in line(
-            x as isize,
-            (y + 1) as isize,
-            self.end_x as isize,
-            (self.end_y + 1) as isize,
+            x as i32,
+            (y + 1) as i32,
+            self.end_x as i32,
+            (self.end_y + 1) as i32,
         ) {
             bresenham_cells.push(c);
         }
