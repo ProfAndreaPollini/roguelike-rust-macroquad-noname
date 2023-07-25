@@ -10,6 +10,7 @@ use crate::{
 use delegate::delegate;
 
 use macroquad::{prelude::Vec2, prelude::WHITE, texture::draw_texture_ex};
+use noise::core::value;
 
 use super::{
     camera::Camera,
@@ -37,9 +38,20 @@ pub trait Updatable {
     fn move_to(&mut self, _x: i32, _y: i32) {}
 }
 
+pub trait EnergyBased {
+    fn energy(&self) -> u32 {
+        0
+    }
+
+    fn increase_energy(&mut self) {}
+    fn decrease_energy(&mut self, amount: u32) {}
+}
+
+pub trait EntityTrait: Updatable + Drawable + EnergyBased {}
+
 /// Trait representing an entity in the game world.
 #[derive(Debug, Clone)]
-pub struct EntityFeatures<T: Updatable + Drawable> {
+pub struct EntityFeatures<T: EntityTrait> {
     id: Option<EntityKey>,
     pub name: String,
     pub breed: T,
@@ -47,7 +59,7 @@ pub struct EntityFeatures<T: Updatable + Drawable> {
 
 impl<T> EntityFeatures<T>
 where
-    T: Updatable + Drawable + Default,
+    T: EntityTrait + Default,
 {
     pub fn new(name: String) -> Self {
         Self {
@@ -62,11 +74,8 @@ where
 
 impl<T> EntityFeatures<T>
 where
-    T: Updatable + Drawable,
+    T: EntityTrait,
 {
-    // fn draw(&self, texture_manager: &TextureManager, viewport: &Viewport) {}
-    // fn update(&mut self) {}
-
     fn is_player(&self) -> bool {
         false
     }
@@ -184,6 +193,9 @@ impl Entity {
         } {
             pub fn move_by(&mut self, dx: i32, dy: i32);
             pub fn move_to(&mut self, x: i32, y: i32);
+            pub fn decrease_energy(&mut self, amount: u32);
+            pub fn increase_energy(&mut self);
+            pub fn energy(&self) -> u32;
         }
     }
 }

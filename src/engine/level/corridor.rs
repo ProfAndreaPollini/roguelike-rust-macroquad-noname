@@ -40,8 +40,8 @@ impl Corridor {
 
     //build cells
     fn build_cells(&mut self) {
-        println!("build_cells: {:?}", self);
-        let mut rng = thread_rng();
+        // println!("build_cells: {:?}", self);
+        // let mut rng = thread_rng();
 
         let mut x = self.start_x;
         let mut y = self.start_y;
@@ -74,19 +74,6 @@ impl Corridor {
         for c in bresenham_cells.iter() {
             self.cells.push(Cell::new(c.0 as u16, c.1 as u16));
         }
-        // while x != self.end_x || y != self.end_y {
-        //     if rng.gen_bool(0.5) {
-        //         if x != self.end_x {
-        //             x += 1;
-        //         }
-        //     } else if y != self.end_y {
-        //         y += 1;
-        //     }
-
-        //     self.cells.push(Cell::new(x, y));
-        // }
-
-        println!("build_cells: {:?}", self);
     }
 
     pub fn connect_rooms(room1: &Room, room2: &Room) -> Self {

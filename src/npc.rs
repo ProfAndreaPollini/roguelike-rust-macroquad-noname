@@ -1,11 +1,13 @@
+use macroquad::prelude::Vec2;
+
 use crate::engine::{
     core::{
         camera::Camera,
         direction::Direction,
-        entity::{draw_sprite, Drawable, Updatable},
+        entity::{Drawable, EnergyBased, EntityTrait, Updatable},
     },
+    map::renderer::render_entity,
     texture_manager::TextureManager,
-    viewport::Viewport,
 };
 
 #[derive(Debug, Clone, Default)]
@@ -13,23 +15,26 @@ pub struct NPC {
     pub x: i32,
     pub y: i32,
     pub direction: Direction,
+    pub energy: u32,
 }
 
 impl Drawable for NPC {
     fn draw(&self, texture_manager: &TextureManager, camera: &Camera) {
         let texture = &texture_manager.texture;
-        let idle_sprite = texture_manager.get_sprite("npc01");
+        let sprite_rect = texture_manager.get_sprite("idle");
+        let cell_size = texture_manager.cell_size;
 
-        // let center = viewport.center();
+        // let sprite_x = self.x as f32 * cell_size;
+        // let sprite_y = self.y as f32 * cell_size;
+        // let screen_pos = camera.world_to_viewport(Vec2::new(sprite_x, sprite_y));
 
-        // draw_sprite(
-        //     texture,
-        //     self.x,
-        //     self.y,
-        //     viewport,
-        //     texture_manager.cell_output_size(),
-        //     idle_sprite,
-        // );
+        render_entity(
+            Vec2::new(self.x as f32, self.y as f32),
+            sprite_rect,
+            texture,
+            cell_size,
+            camera,
+        );
     }
 }
 
@@ -38,3 +43,14 @@ impl Updatable for NPC {
         Some((self.x, self.y))
     }
 }
+
+impl EnergyBased for NPC {
+    fn energy(&self) -> u32 {
+        1
+    }
+    fn increase_energy(&mut self) {
+        self.energy += 1;
+    }
+}
+
+impl EntityTrait for NPC {}

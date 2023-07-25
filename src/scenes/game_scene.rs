@@ -1,37 +1,36 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    collections::{HashMap, VecDeque},
+    rc::Rc,
+};
 
 use macroquad::{
     prelude::{Color, IVec2, Rect, Vec2, BLUE, GREEN, WHITE},
     shapes::draw_rectangle,
     text::{draw_text, Font},
     time::get_fps,
-    window::{screen_height, screen_width},
+    window::screen_width,
 };
-use zorder::{coord_of, index_of};
 
 use crate::{
     actions::{Action, ActionResult},
     engine::{
         core::{
-            camera::{self, Camera},
+            camera::Camera,
             entity::{Entity, EntityFeatures},
-            world::{self, World},
+            world::{EntityKey, World},
         },
         fov::{bresenham_fov, compute_fov},
         map::{
-            self,
             builder::{BasicMapBuilder, MapBuilder},
             cell::Cell,
             renderer::MapRenderer,
             Map,
         },
-        texture_manager::{self, TextureManager},
-        viewport::{self, Viewport},
+        texture_manager::TextureManager,
     },
-    player,
     random_walk_builder::RandomWalkBuilder,
     room_builder::RoomBuilder,
-    ui::buttons::Button,
+    ui::{buttons::Button, label::Label},
 };
 
 use super::{SceneContext, UpdatableScene};
@@ -49,8 +48,10 @@ pub struct GameScene {
     pub camera: Option<Camera>,
     world: World,
     button: Option<Button>,
+    energy_label: Option<Label>,
     font: Option<Font>,
     visible_cells: Vec<Cell>,
+    keys: VecDeque<EntityKey>,
 }
 
 impl GameScene {
@@ -66,7 +67,9 @@ impl GameScene {
             camera: None,
             button: None,
             font: None,
+            energy_label: None,
             visible_cells: Vec::new(),
+            keys: VecDeque::new(),
         }
     }
 
@@ -152,13 +155,17 @@ impl UpdatableScene for GameScene {
         button.hovered_color = Some(WHITE);
         button.hovered_bg_color = Some(BLUE);
         self.button = Some(button);
+
+        let mut energy = Label::new("ciao", font, 24, Vec2::new(10., 10.));
+        energy.color = WHITE;
+        self.energy_label = Some(energy);
     }
 
     fn update(&mut self) {
         // println!("GameScene update");
         let map = self.map.as_mut().unwrap();
 
-        let entities = self.world.iter().collect::<Vec<&Entity>>();
+        // let entities = self.world.iter().collect::<Vec<&Entity>>();
         let mut actions: Vec<Action> = Vec::new();
 
         if !self.visible_cells.is_empty() {
@@ -168,25 +175,31 @@ impl UpdatableScene for GameScene {
             self.visible_cells.clear();
         }
 
-        for entity in entities {
-            // println!("update entity : {:?}", entity);
-
-            let a = entity.update(&self.world, map);
-
-            let pos = entity.position().unwrap();
-
-            if entity.is_player() {
-                let dir = entity.direction();
-                let cells =
-                    bresenham_fov(&Cell::new(pos.0 as u16, pos.1 as u16), &dir, 10, 80., map);
-                // cells.iter().for_each(|c| {
-                //     map.set_tile_visible(c.x, c.y, false);
-                // });
-                println!("cells = {:?}", cells);
-                self.visible_cells = cells;
-            }
-            actions.extend(a);
+        if self.keys.is_empty() {
+            self.keys = self.world.keys().into();
         }
+
+        let e = self.keys.front().unwrap();
+        println!("processing entity = {:?}", e);
+        let entity = self.world.get_entity(*e).unwrap();
+        // for entity in self.world.iter() {
+        // println!("update entity : {:?}", entity);
+
+        let a = entity.update(&self.world, map);
+
+        let pos = entity.position().unwrap();
+
+        if entity.is_player() {
+            let dir = entity.direction();
+            let cells = bresenham_fov(&Cell::new(pos.0 as u16, pos.1 as u16), &dir, 10, 80., map);
+            // cells.iter().for_each(|c| {
+            //     map.set_tile_visible(c.x, c.y, false);
+            // });
+            // println!("cells = {:?}", cells);
+            self.visible_cells = cells;
+        }
+        actions.extend(a);
+        // }
 
         while let Some(action) = actions.pop() {
             let action_reponse = action.perform(map, &mut self.world);
@@ -194,6 +207,11 @@ impl UpdatableScene for GameScene {
             match action_reponse {
                 ActionResult::Succeeded => {}
                 ActionResult::Failure => {}
+                ActionResult::EndTurn => {
+                    // println!("EndTurn");
+                    self.keys.pop_front();
+                    break;
+                }
                 ActionResult::AlternativeAction(action) => {
                     actions.push(action);
                 }
@@ -209,11 +227,11 @@ impl UpdatableScene for GameScene {
         let tile_size = self.texture_manager.as_ref().unwrap().cell_size;
         let p0 = Vec2::new(player_pos.0 as f32, player_pos.1 as f32);
         let p1 = p0 * tile_size - viewport_center;
-        println!(
-            "camera_pos = {:?} tile_size = {:?} center = {:?}",
-            camera.position, tile_size, viewport_center
-        );
-        println!("p0 = {:?}, p1 = {:?}", p0, p1);
+        // println!(
+        //     "camera_pos = {:?} tile_size = {:?} center = {:?}",
+        //     camera.position, tile_size, viewport_center
+        // );
+        // println!("p0 = {:?}, p1 = {:?}", p0, p1);
         // self.camera.as_mut().unwrap().position = p0 * tile_size - viewport_size;
         self.camera.as_mut().unwrap().position =
             p0 * tile_size * camera.zoom - viewport_center * camera.zoom;
@@ -224,6 +242,10 @@ impl UpdatableScene for GameScene {
         if self.button.as_ref().unwrap().clicked() {
             println!("Button clicked");
         }
+        self.energy_label
+            .as_mut()
+            .unwrap()
+            .update_label(format!("Energy: {}", 10).as_str());
     }
 
     fn draw(&self) {
@@ -259,6 +281,21 @@ impl UpdatableScene for GameScene {
             // print!("draw entity : {:?} - ", e);
             e.draw(texture_manager, self.camera.as_ref().unwrap());
         });
+
+        let camera_viewport = self.camera.as_ref().unwrap().viewport;
+
+        draw_rectangle(
+            camera_viewport.x + camera_viewport.w + 10.,
+            camera_viewport.y,
+            200.,
+            400.,
+            Color::new(0., 1., 0., 0.5),
+        );
+
+        self.energy_label.as_ref().unwrap().draw(Vec2::new(
+            camera_viewport.x + camera_viewport.w + 20.,
+            camera_viewport.y + 20.,
+        ));
 
         // let player_pos = world.player().unwrap().position().unwrap();
 

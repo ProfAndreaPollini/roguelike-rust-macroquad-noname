@@ -25,7 +25,7 @@ impl Camera {
 
     pub fn visible_area(&self, tile_size: f32) -> Rect {
         let size = self.visible_area_size(tile_size);
-        println!("visible_area_size = {:?}", size);
+        // println!("visible_area_size = {:?}", size);
         Rect::new(
             self.position.x / (tile_size * self.zoom),
             self.position.y / (tile_size * self.zoom),

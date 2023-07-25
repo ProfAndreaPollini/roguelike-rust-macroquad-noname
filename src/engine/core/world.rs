@@ -72,8 +72,9 @@ impl World {
             .map(|e| e.borrow_mut())
     }
 
+    /// Returns an immutable reference to the player entity, if it exists.
     pub fn player(&self) -> Option<&Entity> {
-        self.entities.values().find(|e| e.is_player()).map(|e| e)
+        self.entities.values().find(|e| e.is_player())
     }
 }
 

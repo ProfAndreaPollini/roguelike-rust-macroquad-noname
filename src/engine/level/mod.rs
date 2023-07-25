@@ -82,7 +82,7 @@ impl Room {
     }
 
     pub fn center(&self) -> Cell {
-        println!("center: {:?}", self);
+        // println!("center: {:?}", self);
         let center_x = self.top_left.x + (self.width / 2);
         let center_y = self.top_left.y + (self.height / 2);
 

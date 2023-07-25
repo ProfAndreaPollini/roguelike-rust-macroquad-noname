@@ -7,6 +7,7 @@ use crate::engine::{
 pub enum ActionResult {
     Succeeded,
     Failure,
+    EndTurn,
     AlternativeAction(Action),
 }
 
@@ -21,13 +22,27 @@ pub struct Move {
 #[derive(Debug)]
 pub enum Action {
     Move(Move),
+    Skip(EntityKey),
 }
 
 impl Action {
+    pub fn cost(&self) -> u32 {
+        match self {
+            Action::Move(_) => 1,
+            Action::Skip(_) => 0,
+        }
+    }
+
     pub fn perform(&self, map: &mut Map, world: &mut World) -> ActionResult {
         match self {
+            Self::Skip(key) => {
+                let e = world.get_entity_mut(*key).unwrap();
+                e.increase_energy();
+                ActionResult::EndTurn
+            }
             Action::Move(Move { dx, dy, key }) => {
                 let e = world.get_entity_mut(*key).unwrap();
+                e.increase_energy();
 
                 let pos = e.position();
 
@@ -38,10 +53,17 @@ impl Action {
                 let desiderd_x = x + dx;
                 let desiderd_y = y + dy;
 
-                println!("Desired position: {}, {}", desiderd_x, desiderd_y);
+                // println!("Desired position: {}, {}", desiderd_x, desiderd_y);
 
                 if !map.is_valid_position(e, desiderd_x, desiderd_y) {
                     return ActionResult::Failure;
+                }
+
+                let action_cost = self.cost();
+                if e.energy() < action_cost {
+                    return ActionResult::EndTurn;
+                } else {
+                    e.decrease_energy(action_cost);
                 }
 
                 e.move_by(*dx, *dy);

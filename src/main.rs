@@ -19,9 +19,8 @@ use engine::map::builder::{BasicMapBuilder, MapBuilder};
 use engine::texture_manager::TextureManager;
 use macroquad::prelude::*;
 
-use macroquad::ui::{hash, root_ui, widgets};
 use random_walk_builder::RandomWalkBuilder;
-use room_builder::RoomBuilder;
+
 use scenes::events::SceneEvent;
 
 use scenes::{Scene, UpdatableScene};
@@ -43,17 +42,17 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut texture_manager =
-        TextureManager::new("assets/urizen_onebit_tileset__v1d0.png", 12., 3., 1.).await;
+    // let mut texture_manager =
+    //     TextureManager::new("assets/urizen_onebit_tileset__v1d0.png", 12., 3., 1.).await;
 
-    texture_manager.load_from_json("assets/config.json");
+    // texture_manager.load_from_json("assets/config.json");
 
-    let map = MapBuilder::new(100, 100, HashMap::new())
-        .add_step(&BasicMapBuilder::default())
-        .add_step(&RandomWalkBuilder::default())
-        .build();
+    // let map = MapBuilder::new(100, 100, HashMap::new())
+    //     .add_step(&BasicMapBuilder::default())
+    //     .add_step(&RandomWalkBuilder::default())
+    //     .build();
 
-    let engine = Engine::new(texture_manager, map);
+    // let engine = Engine::new(texture_manager, map);
 
     let mut texture_manager =
         TextureManager::new("assets/urizen_onebit_tileset__v1d0.png", 12., 3., 1.).await;
@@ -89,12 +88,6 @@ async fn main() {
     render_target.texture.set_filter(FilterMode::Nearest);
 
     loop {
-        // set_camera(&Camera2D {
-        //     zoom: vec2(1.0, 1.0),
-        //     target: vec2(0.0, 0.0),
-        //     render_target: Some(render_target),
-        //     ..Default::default()
-        // });
         clear_background(BLACK);
 
         current_scene.borrow_mut().update();

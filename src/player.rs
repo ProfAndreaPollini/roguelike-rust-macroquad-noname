@@ -1,7 +1,4 @@
-use macroquad::{
-    prelude::{is_key_pressed, KeyCode, Vec2, YELLOW},
-    shapes::draw_line,
-};
+use macroquad::prelude::{is_key_pressed, KeyCode, Vec2};
 
 use crate::{
     actions::{Action, Move},
@@ -9,7 +6,7 @@ use crate::{
         core::{
             camera::Camera,
             direction::Direction,
-            entity::{Drawable, Updatable},
+            entity::{Drawable, EnergyBased, EntityTrait, Updatable},
             world::{EntityKey, World},
         },
         map::{renderer::render_entity, Map},
@@ -22,7 +19,10 @@ pub struct Player {
     pub x: i32,
     pub y: i32,
     pub direction: Direction,
+    pub energy: u32,
 }
+
+impl EntityTrait for Player {}
 
 impl Drawable for Player {
     fn draw(&self, texture_manager: &TextureManager, camera: &Camera) {
@@ -31,16 +31,9 @@ impl Drawable for Player {
         let sprite_rect = texture_manager.get_sprite("idle");
         let cell_size = texture_manager.cell_size;
 
-        let sprite_x = self.x as f32 * cell_size;
-        let sprite_y = self.y as f32 * cell_size;
-        let screen_pos = camera.world_to_viewport(Vec2::new(sprite_x, sprite_y));
-
-        let final_pos = match self.direction {
-            Direction::Down => screen_pos + Vec2::new(0., cell_size),
-            Direction::Up => screen_pos + Vec2::new(0., -cell_size),
-            Direction::Left => screen_pos + Vec2::new(-cell_size, 0.),
-            Direction::Right => screen_pos + Vec2::new(cell_size, 0.),
-        };
+        // let sprite_x = self.x as f32 * cell_size;
+        // let sprite_y = self.y as f32 * cell_size;
+        // let screen_pos = camera.world_to_viewport(Vec2::new(sprite_x, sprite_y));
 
         render_entity(
             Vec2::new(self.x as f32, self.y as f32),
@@ -49,14 +42,22 @@ impl Drawable for Player {
             cell_size,
             camera,
         );
-        draw_line(
-            screen_pos.x + cell_size / 2.,
-            screen_pos.y + cell_size / 2.,
-            final_pos.x + cell_size / 2.,
-            final_pos.y + cell_size / 2.,
-            2.,
-            YELLOW,
-        );
+
+        // let final_pos = match self.direction {
+        //     Direction::Down => screen_pos + Vec2::new(0., cell_size),
+        //     Direction::Up => screen_pos + Vec2::new(0., -cell_size),
+        //     Direction::Left => screen_pos + Vec2::new(-cell_size, 0.),
+        //     Direction::Right => screen_pos + Vec2::new(cell_size, 0.),
+        // };
+
+        // draw_line(
+        //     screen_pos.x + cell_size / 2.,
+        //     screen_pos.y + cell_size / 2.,
+        //     final_pos.x + cell_size / 2.,
+        //     final_pos.y + cell_size / 2.,
+        //     2.,
+        //     YELLOW,
+        // );
     }
 }
 
@@ -97,8 +98,8 @@ impl Updatable for Player {
 
     fn next_action(
         &self,
-        map: &Map,
-        world: &World,
+        _map: &Map,
+        _world: &World,
         key: EntityKey,
     ) -> Option<crate::actions::Action> {
         let mut action = None;
@@ -122,11 +123,24 @@ impl Updatable for Player {
             //action_handler.add_action(crate::actions::Action::Move(Move { dx: 0, dy: 1 }));
             action = Some(crate::actions::Action::Move(Move { dx: 0, dy: 1, key }));
         }
+
+        if is_key_pressed(KeyCode::Space) {
+            action = Some(crate::actions::Action::Skip(key));
+        }
         action
     }
 
     fn position(&self) -> Option<(i32, i32)> {
         Some((self.x, self.y))
+    }
+}
+
+impl EnergyBased for Player {
+    fn energy(&self) -> u32 {
+        1
+    }
+    fn increase_energy(&mut self) {
+        self.energy += 1;
     }
 }
 

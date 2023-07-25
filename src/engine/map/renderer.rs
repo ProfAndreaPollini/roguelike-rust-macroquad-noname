@@ -5,13 +5,7 @@ use macroquad::{
 };
 use zorder::coord_of;
 
-use crate::engine::{
-    core::{
-        camera::Camera,
-        entity::{self, Entity},
-    },
-    texture_manager::{self, TextureManager},
-};
+use crate::engine::{core::camera::Camera, texture_manager::TextureManager};
 
 use super::{tile::Tile, Map};
 
@@ -25,18 +19,12 @@ impl MapRenderer {
         let zoom = camera.zoom;
         let texture = &texture_manager.texture;
 
-        // println!("visible_area = {:?}", visible_area);
-
         for (index, tile) in map.tiles_visible_from(visible_area) {
-            //&self.tiles.tiles {
             let (x, y) = coord_of(index);
 
             let sprite_name: Option<&str> = tile.sprite_name();
 
-            // print!("{} ", sprite_name.as_ref().unwrap());
-
             if sprite_name.is_none() {
-                // println!("no sprite name");
                 continue;
             }
 
@@ -61,11 +49,6 @@ impl MapRenderer {
                 cell_size,
             );
 
-            // draw items
-            // if tile.items().is_empty() {
-            //     continue;
-            // }
-
             if tile.explored() && !tile.visible() {
                 self.highlight_tile(
                     Vec2::new(x as f32, y as f32),
@@ -83,17 +66,7 @@ impl MapRenderer {
                     Color::new(1.0, 1.0, 0.0, 0.9),
                 );
             }
-
-            // self.render_tile_items(screen_pos.x, screen_pos.y, tile, texture);
         }
-        // draw_rectangle(
-        //     viewport.x,
-        //     viewport.y,
-        //     viewport.w,
-        //     viewport.h,
-        //     Color::new(1.0, 1.0, 1.0, 0.4),
-        // );
-        // println!(">> ----");
     }
 
     pub fn highlight_tile(
@@ -111,7 +84,6 @@ impl MapRenderer {
         let screen_y =
             (sprite_y) * camera.zoom - camera.position.y / camera.zoom + camera.viewport.y;
 
-        // println!("screen_x = {}, screen_y = {}", screen_x, screen_y);
         let screen_pos = camera.world_to_viewport(Vec2::new(sprite_x, sprite_y));
         let cell_size = texture_manager.cell_size * camera.zoom;
 

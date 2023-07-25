@@ -81,9 +81,9 @@ pub fn line<
         }
         x += T::from(1);
     }
-    println!("cells: {:?}", cells);
+    // println!("cells: {:?}", cells);
     if cells[0].0 != start_x && cells[0].1 != start_y {
-        println!("cells[0] != x0 || cells[0] != y0");
+        // println!("cells[0] != x0 || cells[0] != y0");
         cells.reverse();
     }
     cells

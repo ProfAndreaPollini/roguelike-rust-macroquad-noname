@@ -5,7 +5,7 @@ use crate::engine::map::bresenham::line;
 
 use super::{
     core::direction::Direction,
-    map::{bresenham::line_to_cell, cell::Cell, Map},
+    map::{cell::Cell, Map},
 };
 
 // Implementa i dettagli delle altre classi e funzioni utilizzate
@@ -113,8 +113,6 @@ pub fn compute_fov(map: &mut Map, start_pos: IVec2, fov_distance: i32) {
 fn scan_iter(start_row: &mut Row, quadrant: &mut Quadrant, map: &mut Map, fov_distance: i32) {
     let mut rows = vec![*start_row];
     while let Some(mut row) = rows.pop() {
-        // debug!("rows {:?}", rows);
-
         if row.depth > fov_distance {
             return;
         }
@@ -274,7 +272,7 @@ pub fn bresenham_fov(
 ) -> Vec<Cell> {
     let tan_angle = (angle * 0.5).to_radians().tan();
     let p_size = (depth as f32 * tan_angle).ceil() as u16;
-    println!("p_size = {},  tan_angle={:?}", p_size, tan_angle);
+    // println!("p_size = {},  tan_angle={:?}", p_size, tan_angle);
     let mut candidates = Vec::<Cell>::new();
 
     let mut x = 0;

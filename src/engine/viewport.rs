@@ -33,11 +33,11 @@ impl Viewport {
     pub fn filter_tiles(&self, map: &Map) -> Vec<(u32, Tile)> {
         let mut tiles: Vec<(u32, Tile)> = vec![];
 
-        let center = self.0.center();
+        // let center = self.0.center();
 
         for x in self.0.left() as i32..self.0.right() as i32 {
             for y in self.0.top() as i32..self.0.bottom() as i32 {
-                let pos = Vec2::new(x as f32, y as f32);
+                // let pos = Vec2::new(x as f32, y as f32);
                 let idx = index_of((x as u16, y as u16));
 
                 if let Some(tile) = map.tile_at(x as u16, y as u16) {

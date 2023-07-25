@@ -1,9 +1,8 @@
 use rand::thread_rng;
 
 use crate::engine::{
-    items::{Gold, Item},
     level::{Dimension, Room},
-    map::{self, builder::MapBuilderAlgorithm, cell::Cell},
+    map::{builder::MapBuilderAlgorithm, cell::Cell},
 };
 
 #[derive(Debug, Default)]
@@ -14,7 +13,7 @@ impl<'a> MapBuilderAlgorithm<'a> for RoomBuilder {
         &self,
         map_builder: &'a mut crate::engine::map::builder::MapBuilder,
     ) -> &'a mut crate::engine::map::builder::MapBuilder {
-        let mut rng = thread_rng();
+        // let mut rng = thread_rng();
 
         let mut rooms = Vec::<Room>::new();
 
@@ -71,12 +70,11 @@ impl<'a> MapBuilderAlgorithm<'a> for RoomBuilder {
             let room1 = &rooms[i];
             let room2 = &rooms[i + 1];
 
-            let mut corridor =
-                crate::engine::level::corridor::Corridor::connect_rooms(room1, room2);
+            let corridor = crate::engine::level::corridor::Corridor::connect_rooms(room1, room2);
 
             for cell in corridor.cells() {
                 let mut tile =
-                    crate::engine::map::tile::Tile::new("test".to_string(), "test".to_string());
+                    crate::engine::map::tile::Tile::new("floor".to_string(), "floor".to_string());
                 tile.cell_type = crate::engine::map::tile::CellType::Floor;
                 map_builder.map_tiles.add_tile(cell.x, cell.y, tile);
             }

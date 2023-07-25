@@ -76,10 +76,24 @@ impl Map {
         }
     }
 
+    /// Returns a random center cell of a room in the map.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - The map instance.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use engine::map::Map;
+    ///
+    /// let map = Map::new(80, 50);
+    /// let center = map.get_random_room_center();
+    /// ```
     pub fn get_random_room_center(&self) -> Cell {
         let mut rng = rand::thread_rng();
         let index = rng.gen_range(0..self.rooms.len());
-        self.rooms.get(index).clone().unwrap().center()
+        self.rooms.get(index).unwrap().center()
     }
 
     /// Returns a vector of tiles and their indices that are visible from a given rectangle.

@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use std::borrow::BorrowMut;
 
 use macroquad::{
     prelude::{is_mouse_button_down, mouse_position, Color, MouseButton, Rect, Vec2, BLACK, WHITE},

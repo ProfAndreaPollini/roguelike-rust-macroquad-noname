@@ -1,8 +1,7 @@
 use std::rc::Rc;
 
 use macroquad::{
-    prelude::{Vec2, DARKGREEN, WHITE},
-    text::{draw_text_ex, TextParams},
+    prelude::{Vec2, DARKGREEN},
     window::{screen_height, screen_width},
 };
 
@@ -28,7 +27,7 @@ impl IntroScene {
 impl UpdatableScene for IntroScene {
     fn process_input(
         &mut self,
-        event: super::events::SceneEvent,
+        _event: super::events::SceneEvent,
     ) -> Option<super::events::SceneCommands> {
         if self.btn_play.as_ref().unwrap().clicked() {
             Some(super::events::SceneCommands::ChangeScene(
@@ -68,7 +67,7 @@ impl UpdatableScene for IntroScene {
             Vec2::new(10., 10.),
         );
         btn_play.hovered_bg_color = Some(DARKGREEN);
-        btn_play.on_click = Some(Box::new(|button| {
+        btn_play.on_click = Some(Box::new(|_button| {
             println!("Button clicked!!");
         }));
         self.btn_play = Some(btn_play);
@@ -81,7 +80,7 @@ impl UpdatableScene for IntroScene {
             Vec2::new(10., 10.),
         );
         btn_exit.hovered_bg_color = Some(DARKGREEN);
-        btn_exit.on_click = Some(Box::new(|button| {
+        btn_exit.on_click = Some(Box::new(|_button| {
             println!("Exit!!");
         }));
 
@@ -95,34 +94,6 @@ impl UpdatableScene for IntroScene {
     }
 
     fn draw(&self) {
-        // info!("IntroScene draw");
-        // let center = self.viewport.as_ref().unwrap().center();
-        // //let cell_output_size = self.texture_manager.cell_output_size();
-        // for x in 0..40 {
-        //     for y in 0..30 {
-        //         macroquad::shapes::draw_rectangle(
-        //             (x as f32 + center.x) * 36.,
-        //             (y as f32 + center.y) * 36.,
-        //             36.,
-        //             36.,
-        //             macroquad::color::Color::new(x as f32 / 40., y as f32 / 30., 0.0, 1.0),
-        //         );
-        //     }
-        // }
-
-        // draw_text_ex(
-        //     "Rust Roguelike",
-        //     screen_width() / 2.,
-        //     screen_height() / 2.,
-        //     {
-        //         TextParams {
-        //             font_size: 120,
-        //             font_scale: 1.0,
-        //             color: WHITE,
-        //             ..TextParams::default()
-        //         }
-        //     },
-        // );
         self.btn_play.as_ref().unwrap().draw();
         self.btn_exit.as_ref().unwrap().draw();
     }
