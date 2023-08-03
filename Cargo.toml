@@ -5,16 +5,22 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-macroquad = "0.3.26"
-noise = "0.8.2"
-zorder = "0.1.0"
+[workspace]
+members = ["libs/rust-nonamerl-core", "bin/spritesheet_test"]
 
-slotmap = { version = "1.0.6", features = ["serde"] }
-serde = { version = "1.0.171", features = ["derive"] }
-serde_json = "1.0.100"
-rand = "0.8.5"
-egui = "0.21.0"
-egui-macroquad = "0.15.0"
-delegate = "0.10.0"
-num-traits = "0.2.16"
+[dependencies]
+
+macroquad = "0.4.2"
+
+rust-nonamerl-core = { path = "libs/rust-nonamerl-core" }
+# noise = "0.8.2"
+# zorder = "0.1.0"
+
+# slotmap = { version = "1.0.6", features = ["serde"] }
+# serde = { version = "1.0.171", features = ["derive"] }
+# serde_json = "1.0.100"
+# rand = "0.8.5"
+# egui = "0.21.0"
+# egui-macroquad = "0.15.0"
+# delegate = "0.10.0"
+# num-traits = "0.2.16"

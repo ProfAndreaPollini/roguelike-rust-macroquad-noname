@@ -1,0 +1,12 @@
+[package]
+name = "spritesheet_test"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+macroquad = "0.4.2"
+
+rust-nonamerl-core = { path = "../../libs/rust-nonamerl-core" }
+noise = "0.8.2"

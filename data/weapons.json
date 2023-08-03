@@ -1,0 +1,38 @@
+{
+    "urna del pippoppero": {
+        "name": "urna del pippoppero",
+        "class": "item",
+        "type": "urna",
+        "damage": 1,
+        "durability": 100,
+        "value": 0,
+        "weight": 1,
+        "behaviours": [
+            "throwable"
+        ]
+    },
+    "sword": {
+        "name": "sword",
+        "class": "weapon",
+        "damage": 10,
+        "durability": 100,
+        "value": 10,
+        "weight": 10,
+        "behaviours": [
+            "equipable",
+            "melee",
+            "throwable"
+        ]
+    },
+    "stone": {
+        "name": "sasso",
+        "class": "weapon",
+        "damage": 1,
+        "durability": 100,
+        "value": 0,
+        "weight": 1,
+        "behaviours": [
+            "throwable"
+        ]
+    }
+}
