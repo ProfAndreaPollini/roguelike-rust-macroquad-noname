@@ -1,25 +1,33 @@
 #![allow(dead_code)]
-use crate::entity::{
-    property::Property,
-    world::{EntityKey, ItemKey, World},
+use crate::{
+    entity::{
+        property::Property,
+        world::{EntityKey, ItemKey, World},
+    },
+    Map, Tile,
 };
 
 use super::Action;
 
 #[derive(Debug, Clone, Copy)]
-pub struct EquipAction {
+pub struct EquipAction<T: Tile> {
     pub item: ItemKey,
     pub target: EntityKey,
+    _phantom: std::marker::PhantomData<T>,
 }
 
-impl EquipAction {
+impl<T: Tile> EquipAction<T> {
     pub fn new(item: ItemKey, target: EntityKey) -> Self {
-        Self { item, target }
+        Self {
+            item,
+            target,
+            _phantom: std::marker::PhantomData,
+        }
     }
 }
 
-impl Action for EquipAction {
-    fn perform(&self, world: &World) {
+impl<T: Tile> Action<T> for EquipAction<T> {
+    fn perform(&self, world: &World<T>, _map: &mut Map<T>) {
         let mut entities = world.entities.borrow_mut();
         let target = entities.get_mut(self.target).unwrap();
         let items = world.items.borrow();

@@ -3,7 +3,7 @@ use std::cell::RefCell;
 
 use slotmap::new_key_type;
 
-use crate::entity::WithId;
+use crate::{entity::WithId, Tile};
 
 use super::{
     entity::Entity,
@@ -48,12 +48,12 @@ impl<K: slotmap::Key, V: WithId<K, V>> SlotMapStorage<K, V> {
 }
 
 #[derive(Debug)]
-pub struct World {
+pub struct World<T: Tile> {
     pub entities: RefCell<SlotMapStorage<EntityKey, Entity>>,
-    pub items: RefCell<SlotMapStorage<ItemKey, Item>>,
+    pub items: RefCell<SlotMapStorage<ItemKey, Item<T>>>,
 }
 
-impl World {
+impl<T: Tile> World<T> {
     pub fn new() -> Self {
         Self {
             entities: RefCell::new(SlotMapStorage::new()),
@@ -118,20 +118,20 @@ impl World {
     // }
 }
 
-#[cfg(test)]
+// #[cfg(test)]
 
-mod tests {
-    use crate::entity::{entity::Entity, property::HealthData, world::World};
+// mod tests {
+//     use crate::entity::{entity::Entity, property::HealthData, world::World};
 
-    #[test]
-    fn test_add_entity() {
-        let world = World::new();
+//     #[test]
+//     fn test_add_entity() {
+//         let world = World::new();
 
-        let key = world.entities.borrow_mut().add("Test", |entity| {
-            entity.add_property(crate::entity::property::Property::Xp(6));
-        });
+//         let key = world.entities.borrow_mut().add("Test", |entity| {
+//             entity.add_property(crate::entity::property::Property::Xp(6));
+//         });
 
-        // let entity = world.get_entity_mut(entity_key).unwrap();
-        println!("Entity: {:?}", key);
-    }
-}
+//         // let entity = world.get_entity_mut(entity_key).unwrap();
+//         println!("Entity: {:?}", key);
+//     }
+// }

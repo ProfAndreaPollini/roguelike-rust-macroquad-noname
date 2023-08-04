@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+use crate::Tile;
+
 use super::{
     action::Action,
     world::{EntityKey, ItemKey, World},
@@ -27,17 +29,19 @@ use super::{
 //     }
 // }
 
-pub type AttackActivateFn = fn(ItemKey, EntityKey, &World, EntityKey) -> Option<Box<dyn Action>>;
-pub type DefenseActivateFn = fn(ItemKey, EntityKey, &World) -> Option<Box<dyn Action>>;
-pub type PickActivateFn = fn(ItemKey, EntityKey, &World) -> Option<Box<dyn Action>>;
-pub type DrinkActivateFn = fn(ItemKey, EntityKey, &World) -> Option<Box<dyn Action>>;
+pub type AttackActivateFn<T: Tile> =
+    fn(ItemKey, EntityKey, &World<T>, EntityKey) -> Option<Box<dyn Action<T>>>;
+pub type DefenseActivateFn<T: Tile> =
+    fn(ItemKey, EntityKey, &World<T>) -> Option<Box<dyn Action<T>>>;
+pub type PickActivateFn<T: Tile> = fn(ItemKey, EntityKey, &World<T>) -> Option<Box<dyn Action<T>>>;
+pub type DrinkActivateFn<T: Tile> = fn(ItemKey, EntityKey, &World<T>) -> Option<Box<dyn Action<T>>>;
 
 #[derive(Debug, Clone)]
-pub enum UseKind {
-    Attack { activate_fn: AttackActivateFn },
-    Defense { activate_fn: DefenseActivateFn },
-    Pick { activate_fn: PickActivateFn },
-    Drink { activate_fn: DrinkActivateFn },
+pub enum UseKind<T: Tile> {
+    Attack { activate_fn: AttackActivateFn<T> },
+    Defense { activate_fn: DefenseActivateFn<T> },
+    Pick { activate_fn: PickActivateFn<T> },
+    Drink { activate_fn: DrinkActivateFn<T> },
 }
 
 // impl UseKind {

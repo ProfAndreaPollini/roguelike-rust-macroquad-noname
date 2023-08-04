@@ -1,18 +1,23 @@
 #![allow(dead_code)]
-use crate::entity::world::{EntityKey, World};
+use crate::{
+    entity::world::{EntityKey, World},
+    Map, Tile,
+};
 
 use super::Action;
 #[derive(Debug)]
-pub struct AttackAction {
+pub struct AttackAction<T: Tile> {
     pub damage: i32,
     pub target: EntityKey,
+    _phantom: std::marker::PhantomData<T>,
 }
 
-impl AttackAction {
+impl<T: Tile> AttackAction<T> {
     pub fn new(damage: i32) -> Self {
         Self {
             damage,
             target: Default::default(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -22,8 +27,8 @@ impl AttackAction {
     }
 }
 
-impl Action for AttackAction {
-    fn perform(&self, world: &World) {
+impl<T: Tile> Action<T> for AttackAction<T> {
+    fn perform(&self, world: &World<T>, _map: &mut Map<T>) {
         if self.target == Default::default() {
             panic!("Target not set");
         }

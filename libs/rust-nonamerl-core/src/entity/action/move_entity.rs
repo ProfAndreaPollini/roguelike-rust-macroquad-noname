@@ -2,24 +2,29 @@
 use crate::{
     entity::world::{EntityKey, World},
     property::{self, Property},
-    IntVector2, Vec2,
+    IntVector2, Map, Tile, Vec2,
 };
 
 use super::Action;
 #[derive(Debug)]
-pub struct MoveAction {
+pub struct MoveAction<T: Tile> {
     pub dx: IntVector2,
     pub target: EntityKey,
+    _phantom: std::marker::PhantomData<T>,
 }
 
-impl MoveAction {
+impl<T: Tile> MoveAction<T> {
     pub fn new(dx: IntVector2, target: EntityKey) -> Self {
-        Self { dx, target }
+        Self {
+            dx,
+            target,
+            _phantom: std::marker::PhantomData,
+        }
     }
 }
 
-impl Action for MoveAction {
-    fn perform(&self, world: &World) {
+impl<T: Tile> Action<T> for MoveAction<T> {
+    fn perform(&self, world: &World<T>, _map: &mut Map<T>) {
         if self.target == Default::default() {
             panic!("Target not set");
         }

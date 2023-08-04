@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use macroquad::{
     prelude::*,
     ui::{hash, root_ui, widgets},
@@ -6,10 +8,10 @@ use noise::{Fbm, Perlin};
 use rust_nonamerl_core::{
     property::{HealthData, Property},
     world::{EntityKey, World},
-    Action, AddSpriteOptions, BuilderAlgoWithNoise, Camera, Camera2D, Dimension2, Dimension2D,
-    FovOccluder, IntExtent2D, IntVector2, Map, MapBuilder, MoveAction, RandomWalkBuilder, RenderOp,
-    Renderer, RoomBuilder, SpriteSheet, Tile, TileSpriteInfo, Vec2, Viewport, VisibilityOcclusion,
-    Visible, Visited,
+    Action, ActionQueue, AddSpriteOptions, BuilderAlgoWithNoise, Camera, Camera2D, Dimension2,
+    Dimension2D, FovOccluder, IntExtent2D, IntVector2, Map, MapBuilder, MapCommand, MapCommands,
+    MoveAction, RandomWalkBuilder, RenderOp, Renderer, RoomBuilder, SpriteSheet, Tile,
+    TileSpriteInfo, Vec2, Viewport, VisibilityOcclusion, Visible, Visited,
 };
 
 fn window_conf() -> Conf {
@@ -23,32 +25,69 @@ fn window_conf() -> Conf {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum TestTile {
+pub enum TileKind {
     Grass,
     Floor,
     Wall,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TestTile {
+    pub kind: TileKind,
+    pub visited: bool,
+    pub visible: bool,
+}
+
+impl TestTile {
+    pub fn new(kind: TileKind) -> Self {
+        Self {
+            kind,
+            visited: false,
+            visible: false,
+        }
+    }
+}
+
 impl Default for TestTile {
     fn default() -> Self {
-        Self::Grass
+        Self {
+            kind: TileKind::Grass,
+            visited: false,
+            visible: false,
+        }
     }
 }
 
 impl Tile for TestTile {
     fn sprite_info(&self) -> TileSpriteInfo {
-        match self {
-            Self::Grass => TileSpriteInfo::SpriteSheet("grass"),
-            Self::Floor => TileSpriteInfo::SpriteSheet("floor"),
-            Self::Wall => TileSpriteInfo::SpriteSheet("wall"),
+        match self.kind {
+            TileKind::Grass => TileSpriteInfo::SpriteSheet("grass"),
+            TileKind::Floor => TileSpriteInfo::SpriteSheet("floor"),
+            TileKind::Wall => TileSpriteInfo::SpriteSheet("wall"),
         }
     }
 }
-impl Visible for TestTile {}
-impl Visited for TestTile {}
+impl Visible for TestTile {
+    fn is_visible(&self) -> bool {
+        self.visible
+    }
+
+    fn set_visible(&mut self, visible: bool) {
+        self.visible = visible;
+    }
+}
+impl Visited for TestTile {
+    fn is_visited(&self) -> bool {
+        self.visited
+    }
+
+    fn set_visited(&mut self, visited: bool) {
+        self.visited = visited;
+    }
+}
 impl FovOccluder for TestTile {}
 
-fn create_player(world: &mut World, pos: IntVector2) -> EntityKey {
+fn create_player<T: Tile>(world: &mut World<T>, pos: IntVector2) -> EntityKey {
     let mut entities = world.entities.borrow_mut();
 
     let mut player_key = entities.add("Player", |player| {
@@ -62,16 +101,20 @@ fn create_player(world: &mut World, pos: IntVector2) -> EntityKey {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let mut fov_cells = HashSet::<IntVector2>::new();
+    let mut current_fov_cells = HashSet::<IntVector2>::new();
     let mut world = World::new();
+    let mut action_queue = ActionQueue::new();
     let mut map_builder =
         MapBuilder::<TestTile>::new(IntExtent2D::new(0, 0, 100, 100), Dimension2D::new(24, 24));
     let mut world_x = 240.;
     let mut world_y = 240.;
     map_builder.add_tile("grass", TestTile::default());
     map_builder.add_tile("water", TestTile::default());
-    map_builder.add_tile("floor", TestTile::Floor);
-    map_builder.add_tile("wall", TestTile::Wall);
+    map_builder.add_tile("floor", TestTile::new(TileKind::Floor));
+    map_builder.add_tile("wall", TestTile::new(TileKind::Wall));
 
+    // let mut map_commands = MapCommands::default();
     let noise = Fbm::<Perlin>::default();
     let f = |x: i32, y: i32, value: f64| {
         // println!("x: {}, y: {}, value: {}", x, y, value);
@@ -88,7 +131,7 @@ async fn main() {
 
     let map_size = map_builder.map.size();
 
-    let map = map_builder.map;
+    let mut map = map_builder.map;
 
     let start_point = IntVector2::new(5, 5);
     let player = create_player(&mut world, start_point);
@@ -182,32 +225,41 @@ async fn main() {
     camera.center_on_world_point(world_x, world_y, &viewport);
 
     loop {
+        if map.commands_available() {
+            map.process_commands();
+        }
         if is_key_down(KeyCode::Right) {
             world_x += 1.0 * 12.;
             let move_action = MoveAction::new(IntVector2::new(1, 0), player);
-            move_action.perform(&world);
+            // move_action.perform(&world);
+            action_queue.add(Box::new(move_action));
         }
 
         if is_key_down(KeyCode::Left) {
             world_x -= 1.0 * 12.;
             // camera.center_on_fixed_world_point(world_x, world_y, &viewport)
             let move_action = MoveAction::new(IntVector2::new(-1, 0), player);
-            move_action.perform(&world);
+            // move_action.perform(&world);
+            action_queue.add(Box::new(move_action));
         }
 
         if is_key_down(KeyCode::Up) {
             world_y -= 1.0 * 12.;
             // camera.center_on_fixed_world_point(world_x, world_y, &viewport)
             let move_action = MoveAction::new(IntVector2::new(0, -1), player);
-            move_action.perform(&world);
+            // move_action.perform(&world);
+            action_queue.add(Box::new(move_action));
         }
 
         if is_key_down(KeyCode::Down) {
             world_y += 1.0 * 12.;
             let move_action = MoveAction::new(IntVector2::new(0, 1), player);
-            move_action.perform(&world);
+            // move_action.perform(&world);
             // camera.center_on_fixed_world_point(world_x, world_y, &viewport)
+            action_queue.add(Box::new(move_action));
         }
+
+        action_queue.process_actions(&mut world, &mut map);
 
         let mouse_pos = mouse_position();
 
@@ -327,14 +379,26 @@ async fn main() {
             // map.fov_iter(start,fov_size)
 
             let fov_size = 4;
+            let mut coords = (
+                (world_mouse_pos.0 / map.cell_size().width() as f32) as i32,
+                (world_mouse_pos.1 / map.cell_size().height() as f32) as i32,
+            );
+            if let Some(Property::Position(pos)) = world
+                .entities
+                .borrow()
+                .get(player)
+                .unwrap()
+                .get_property(Property::POSITION)
+            {
+                coords = (pos.x(), pos.y());
+            }
+
+            // let candidate_fov_cells = Tree::<(IntVector2, TestTile)>::new();
+
             // loop over the border of a 5x5 grid centerd in the mouse position
             for i in -fov_size..=fov_size {
                 for j in -fov_size..=fov_size {
                     if i == fov_size || i == -fov_size || j == fov_size || j == -fov_size {
-                        let coords = (
-                            (world_mouse_pos.0 / map.cell_size().width() as f32) as i32,
-                            (world_mouse_pos.1 / map.cell_size().height() as f32) as i32,
-                        );
                         let target = (coords.0 + i, coords.1 + j);
                         let path = map.line(
                             IntVector2::new(coords.0, coords.1),
@@ -345,7 +409,11 @@ async fn main() {
                         //.take_while(|x| x.1.is_some())
                         {
                             let (p, tile) = tile;
-                            print!("p: {:?}, ", p);
+                            // print!("p: {:?}, ", p);
+                            if current_fov_cells.contains(p) {
+                                println!("cell already in fov");
+                                continue;
+                            }
 
                             let t = map.get(p.x(), p.y());
                             if let Some(tile) = t {
@@ -362,47 +430,43 @@ async fn main() {
                                             a: 0.5,
                                         },
                                     ));
+                                    //   BUG: implement map commands
+                                    // (&mut map).set_visited(p.x(), p.y(), true);
+                                    // map.set_visited(p.x(), p.y(), true);
+                                    map.add_command(MapCommand::SetVisited(*p, true));
+                                    current_fov_cells.insert(*p);
                                 } else {
-                                    println!("tile blocked");
+                                    // println!("tile blocked");
                                     break 'outer;
                                 }
                             } else {
-                                println!("tile not found");
+                                // println!("tile not found");
                                 break 'outer;
                             }
-                            // } else {
-                            //     println!("tile not found");
-                            //     break 'path_iter;
-                            // }
                         }
-                        println!();
-                        // for coords in path {
-                        //     map_batch.push(RenderOp::FillCell(
-                        //         coords.x(),
-                        //         coords.y(),
-                        //         Color {
-                        //             r: 1.,
-                        //             g: 1.,
-                        //             b: 1.,
-                        //             a: 0.5,
-                        //         },
-                        //     ));
-                        // }
-                        // map_batch.push(RenderOp::FillCell(
-                        //     coords.0,
-                        //     coords.1,
-                        //     Color {
-                        //         r: 1.,
-                        //         g: 1.,
-                        //         b: 1.,
-                        //         a: 0.5,
-                        //     },
-                        // ));
                     }
 
                     // map_batch.push(RenderOp::HighlightCell(coords.x(), coords.y()));
                 }
             }
+            // println!("fov_cells: {:?}", current_fov_cells);
+            let fov_cells_to_remove = fov_cells.difference(&current_fov_cells);
+            let fov_cells_to_add = current_fov_cells.difference(&fov_cells);
+
+            map.add_commands(
+                fov_cells_to_remove
+                    .map(|v| MapCommand::SetVisible(*v, false))
+                    .collect(),
+            );
+
+            map.add_commands(
+                fov_cells_to_add
+                    .map(|v| MapCommand::SetVisible(*v, true))
+                    .collect(),
+            );
+
+            fov_cells = current_fov_cells.clone();
+            current_fov_cells.clear();
 
             if let Some(Property::Position(pos)) = world
                 .entities

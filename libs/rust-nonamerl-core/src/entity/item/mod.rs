@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 use std::fmt::Display;
 
+use crate::Tile;
+
 use super::{
     activator::UseKind,
     property::HealthData,
@@ -40,14 +42,14 @@ pub enum ItemClass {
 }
 
 #[derive(Debug)]
-pub struct Item {
+pub struct Item<T: Tile> {
     id: ItemKey,
     pub name: String,
     pub class: ItemClass,
-    pub activators: Vec<UseKind>,
+    pub activators: Vec<UseKind<T>>,
 }
 
-impl Item {
+impl<T: Tile> Item<T> {
     pub fn new(id: ItemKey, name: &str) -> Self {
         Self {
             id,
@@ -57,12 +59,12 @@ impl Item {
         }
     }
 
-    pub fn get_activator(&self, pos: usize) -> Option<&UseKind> {
+    pub fn get_activator(&self, pos: usize) -> Option<&UseKind<T>> {
         self.activators.get(pos)
     }
 }
 
-impl WithId<ItemKey, Item> for Item {
+impl<T: Tile> WithId<ItemKey, Item<T>> for Item<T> {
     fn id(&self) -> ItemKey {
         self.id
     }
@@ -72,7 +74,7 @@ impl WithId<ItemKey, Item> for Item {
     }
 }
 
-impl Display for Item {
+impl<T: Tile> Display for Item<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut s = format!("Item: {}", self.name);
         match &self.class {
@@ -88,13 +90,13 @@ impl Display for Item {
 }
 
 #[derive(Debug)]
-pub struct ItemBuilder {
+pub struct ItemBuilder<T: Tile> {
     name: String,
     class: ItemClass,
-    activators: Vec<UseKind>,
+    activators: Vec<UseKind<T>>,
 }
 
-impl ItemBuilder {
+impl<T: Tile> ItemBuilder<T> {
     pub fn new(name: String, itemClass: ItemClass) -> Self {
         Self {
             name,
@@ -103,12 +105,12 @@ impl ItemBuilder {
         }
     }
 
-    pub fn add_activator(mut self, activator: UseKind) -> Self {
+    pub fn add_activator(mut self, activator: UseKind<T>) -> Self {
         self.activators.push(activator);
         self
     }
 
-    pub fn build<'a>(self, world: &'a World) -> ItemKey {
+    pub fn build<'a>(self, world: &'a World<T>) -> ItemKey {
         let k = world.items.borrow_mut().add(&self.name, move |item| {
             item.class = self.class;
             item.activators = self.activators.clone();

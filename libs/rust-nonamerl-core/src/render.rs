@@ -6,8 +6,8 @@ use macroquad::texture::{draw_texture_ex, DrawTextureParams};
 use crate::dimension::Dimension2;
 use crate::{Camera, Camera2D, Dimension2D, Map, SpriteSheet, Tile, TileSpriteInfo, Viewport};
 #[derive(Debug, Copy, Clone)]
-pub enum RenderOp<'a, T: Tile> {
-    DrawTile(i32, i32, &'a T),
+pub enum RenderOp<T: Tile> {
+    DrawTile(i32, i32, T),
     DrawRectangle,
     DrawCircle,
     HighlightCell(i32, i32),
@@ -108,6 +108,52 @@ impl Renderer {
                             );
                         }
                     };
+                    // if !tile.is_visited() {
+                    //     draw_rectangle(
+                    //         viewport_x,
+                    //         viewport_y,
+                    //         self.cell_size.width() as f32 / camera.zoom_scale,
+                    //         self.cell_size.height() as f32 / camera.zoom_scale,
+                    //         Color {
+                    //             r: 0.0,
+                    //             g: 0.0,
+                    //             b: 0.0,
+                    //             a: 0.8,
+                    //         },
+                    //     );
+                    // }
+
+                    match (tile.is_visible(), tile.is_visited()) {
+                        (false, true) => {
+                            draw_rectangle(
+                                viewport_x,
+                                viewport_y,
+                                self.cell_size.width() as f32 / camera.zoom_scale,
+                                self.cell_size.height() as f32 / camera.zoom_scale,
+                                Color {
+                                    r: 0.0,
+                                    g: 0.0,
+                                    b: 0.0,
+                                    a: 0.3,
+                                },
+                            );
+                        }
+                        (false, false) => {
+                            draw_rectangle(
+                                viewport_x,
+                                viewport_y,
+                                self.cell_size.width() as f32 / camera.zoom_scale,
+                                self.cell_size.height() as f32 / camera.zoom_scale,
+                                Color {
+                                    r: 0.0,
+                                    g: 0.0,
+                                    b: 0.0,
+                                    a: 0.8,
+                                },
+                            );
+                        }
+                        (_, _) => {}
+                    }
 
                     // draw_rectangle(
                     //     viewport_x,

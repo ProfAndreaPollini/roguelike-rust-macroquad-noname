@@ -139,7 +139,7 @@ impl<T: Clone> LatticeGrid2D<T> {
         self.data.get(&self.encoder.encode(pos))
     }
 
-    fn at_mut(&mut self, pos: IntVector2) -> Option<&mut T> {
+    pub fn at_mut(&mut self, pos: IntVector2) -> Option<&mut T> {
         self.data.get_mut(&self.encoder.encode(pos))
     }
 
