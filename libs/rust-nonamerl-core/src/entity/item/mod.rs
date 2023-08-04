@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use std::fmt::Display;
 
-use crate::Tile;
+use crate::{Tile, TileSpriteInfo};
 
 use super::{
     activator::UseKind,
@@ -26,8 +26,8 @@ pub struct Weapon {
     pub defense: Option<Defense>,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct Food {}
+// #[derive(Debug, Clone, Copy)]
+// pub struct Food {}
 
 #[derive(Debug, Clone, Copy)]
 pub struct Potion {
@@ -35,17 +35,18 @@ pub struct Potion {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum ItemClass {
+pub enum ItemKind {
     Weapon(Weapon),
     Potion(Potion),
-    Food(Food),
+    Food,
+    Gold(u32),
 }
 
 #[derive(Debug)]
 pub struct Item<T: Tile> {
     id: ItemKey,
     pub name: String,
-    pub class: ItemClass,
+    pub class: ItemKind,
     pub activators: Vec<UseKind<T>>,
 }
 
@@ -54,13 +55,17 @@ impl<T: Tile> Item<T> {
         Self {
             id,
             name: name.to_string(),
-            class: ItemClass::Food(Food {}),
+            class: ItemKind::Food,
             activators: vec![],
         }
     }
 
     pub fn get_activator(&self, pos: usize) -> Option<&UseKind<T>> {
         self.activators.get(pos)
+    }
+
+    fn sprite_info(&self) -> TileSpriteInfo {
+        TileSpriteInfo::None
     }
 }
 
@@ -78,29 +83,33 @@ impl<T: Tile> Display for Item<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut s = format!("Item: {}", self.name);
         match &self.class {
-            ItemClass::Weapon(weapon) => {
+            ItemKind::Weapon(weapon) => {
                 s.push_str(&format!("\nDamage: {:?}", weapon.damage));
                 s.push_str(&format!("\nDefense: {:?}", weapon.defense));
             }
-            ItemClass::Food(_) => {}
-            ItemClass::Potion(_) => {}
+            ItemKind::Food => {}
+            ItemKind::Potion(_) => {}
+            ItemKind::Gold(v) => {
+                s.push_str(&format!("\nGold: {}", v));
+            }
         }
         write!(f, "{}", s)
     }
 }
 
+/// A builder for creating items.
 #[derive(Debug)]
 pub struct ItemBuilder<T: Tile> {
     name: String,
-    class: ItemClass,
+    class: ItemKind,
     activators: Vec<UseKind<T>>,
 }
 
 impl<T: Tile> ItemBuilder<T> {
-    pub fn new(name: String, itemClass: ItemClass) -> Self {
+    pub fn new(name: String, item_kind: ItemKind) -> Self {
         Self {
             name,
-            class: itemClass,
+            class: item_kind,
             activators: vec![],
         }
     }
@@ -110,7 +119,7 @@ impl<T: Tile> ItemBuilder<T> {
         self
     }
 
-    pub fn build<'a>(self, world: &'a World<T>) -> ItemKey {
+    pub fn build(self, world: &World<T>) -> ItemKey {
         let k = world.items.borrow_mut().add(&self.name, move |item| {
             item.class = self.class;
             item.activators = self.activators.clone();

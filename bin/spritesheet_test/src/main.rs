@@ -6,11 +6,12 @@ use macroquad::{
 };
 use noise::{Fbm, Perlin};
 use rust_nonamerl_core::{
+    item::{ItemBuilder, ItemKind},
     property::{HealthData, Property},
-    world::{EntityKey, World},
+    world::{EntityKey, ItemKey, World},
     Action, ActionQueue, AddSpriteOptions, BuilderAlgoWithNoise, Camera, Camera2D, Dimension2,
-    Dimension2D, FovOccluder, IntExtent2D, IntVector2, Map, MapBuilder, MapCommand, MapCommands,
-    MoveAction, RandomWalkBuilder, RenderOp, Renderer, RoomBuilder, SpriteSheet, Tile,
+    Dimension2D, FovOccluder, IntExtent2D, IntVector2, ItemContainer, Map, MapBuilder, MapCommand,
+    MapCommands, MoveAction, RandomWalkBuilder, RenderOp, Renderer, RoomBuilder, SpriteSheet, Tile,
     TileSpriteInfo, Vec2, Viewport, VisibilityOcclusion, Visible, Visited, Walkable,
 };
 
@@ -36,6 +37,7 @@ pub struct TestTile {
     pub kind: TileKind,
     pub visited: bool,
     pub visible: bool,
+    pub items: Vec<ItemKey>,
 }
 
 impl TestTile {
@@ -44,6 +46,7 @@ impl TestTile {
             kind,
             visited: false,
             visible: false,
+            items: Vec::new(),
         }
     }
 }
@@ -54,6 +57,7 @@ impl Default for TestTile {
             kind: TileKind::Grass,
             visited: false,
             visible: false,
+            items: Vec::new(),
         }
     }
 }
@@ -92,16 +96,51 @@ impl Walkable for TestTile {
     }
 }
 
+impl ItemContainer for TestTile {
+    fn items(&self) -> &[ItemKey] {
+        &self.items
+    }
+
+    fn add_item(&mut self, item: ItemKey) {
+        self.items.push(item);
+    }
+
+    fn remove_item(&mut self, item: ItemKey) {
+        self.items.retain(|i| *i != item);
+    }
+}
+
 fn create_player<T: Tile>(world: &mut World<T>, pos: IntVector2) -> EntityKey {
     let mut entities = world.entities.borrow_mut();
 
-    let mut player_key = entities.add("Player", |player| {
+    // entities.get(player_key).unwrap()
+    entities.add("Player", |player| {
         player.add_property(Property::Xp(5));
         player.add_property(Property::Health(HealthData { health: 100 }));
         player.add_property(Property::Position(pos));
-    });
+        player.add_property(Property::Gold(0));
+    })
+}
+
+fn create_item<T>(world: &mut World<T>, properties: Vec<Property>) -> ItemKey
+where
+    T: Tile,
+{
+    // let mut items = world.items.borrow_mut();
+
+    let builder = ItemBuilder::<T>::new("oggetto 1".to_owned(), ItemKind::Food);
+    let item_key = builder.build(world);
+    // let mut item_key = items.add("Item", |item| {
+    //     properties
+    //         .iter()
+    //         .cloned()
+    //         .for_each(|p| item.add_property(p));
+    //     //properties.iter().for_each(|p| item.add_property(p.clone()));
+    //     // item.add_property(Property::Gold());
+    // });
     // entities.get(player_key).unwrap()
-    player_key
+
+    item_key
 }
 
 #[macroquad::main(window_conf)]
@@ -138,7 +177,7 @@ async fn main() {
 
     let mut map = map_builder.map;
 
-    let start_point = IntVector2::new(5, 5);
+    let start_point = map_builder.rooms[1].center(); //IntVector2::new(5, 5);
     let player = create_player(&mut world, start_point);
 
     let mut draw_ops: Vec<RenderOp<TestTile>> = Vec::new();
@@ -151,6 +190,9 @@ async fn main() {
             }
         }
     }
+
+    let item_key = create_item(&mut world, vec![]);
+    map.add_command(MapCommand::AddItem(start_point, item_key));
 
     let mut texture = load_texture("assets/urizen_onebit_tileset__v1d0.png")
         .await
@@ -338,34 +380,23 @@ async fn main() {
             //     for j in min_cell.1..max_cell.1 {
             // println!("cells: {:?} ", map.len());
             let mut map_batch = Vec::<RenderOp<TestTile>>::new();
-            for i in visibile_cells.left()..visibile_cells.right() {
-                for j in visibile_cells.top()..visibile_cells.bottom() {
-                    let coords = map.coords_of_cell(i, j);
-                    if coords.is_none() {
-                        continue;
-                    }
-                    let coords = coords.unwrap();
-                    // let (x, y) =
-                    //     camera.world_to_viewport(coords.x() as f32, coords.y() as f32, &viewport);
-                    // // println!("x: {}, y: {}", x, y);
-                    // draw_rectangle(
-                    //     x,
-                    //     y,
-                    //     24. * camera.zoom_scale,
-                    //     24. * camera.zoom_scale,
-                    //     Color {
-                    //         r: (i as f32 + 1.) / (visibile_cells.width()) as f32,
-                    //         g: (j as f32 + 1.) / (visibile_cells.height()) as f32,
-                    //         b: 0.,
-                    //         a: 0.6,
-                    //     },
-                    // );
+            // for i in visibile_cells.left()..visibile_cells.right() {
+            //     for j in visibile_cells.top()..visibile_cells.bottom() {
+            map.iter_over_visible_tiles(&visibile_cells)
+                .for_each(|(pos, tile)| {
+                    //     let coords = map.coords_of_cell(i, j);
+                    //     if coords.is_none() {
+                    //         continue;
+                    //     }
+                    //     let coords = coords.unwrap();
+                    let (i, j) = (pos.x(), pos.y());
+
                     if let Some(tile) = map.get(i, j) {
                         map_batch.push(RenderOp::DrawTile(i, j, tile));
                     }
                     // map_batch.push(RenderOp::DrawTile(i, j, map.get(i, j).unwrap()));
-                }
-            }
+                });
+            // }
 
             renderer.batch_render(&camera, &viewport, &sprites, &map_batch);
 
@@ -583,11 +614,23 @@ async fn main() {
                 a: 1.,
             },
         );
+        let get_prop = |e: EntityKey, property_name: &str| {
+            world
+                .entities
+                .borrow()
+                .get(player)
+                .unwrap()
+                .get_property(property_name)
+                .unwrap()
+                .clone()
+        };
+
+        let gold = get_prop(player, "gold");
 
         widgets::Window::new(
             hash!(),
             vec2(viewport.x + viewport.width + 100., viewport.y),
-            vec2(320., 400.),
+            vec2(720., 400.),
         )
         .label("Camera")
         .titlebar(true)
@@ -614,7 +657,23 @@ async fn main() {
                 .get_property(Property::POSITION)
             {
                 ui.label(None, &format!("player pos: {:?}", pos));
+                if let Some(tile) = map.get(pos.x(), pos.y()) {
+                    ui.label(None, &format!("tile: {:?}", tile));
+                };
             };
+            ui.separator();
+            // ui.label(None, format!("Au: {}", gold));
+            ui.separator();
+            if let Some(Property::Gold(value)) = world
+                .entities
+                .borrow()
+                .get(player)
+                .unwrap()
+                .get_property(Property::GOLD)
+            {
+                ui.label(None, &format!("gold: {:?}", value));
+            };
+            ui.separator();
         });
 
         next_frame().await

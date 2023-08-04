@@ -5,6 +5,14 @@ use crate::{
 };
 
 use super::Action;
+
+/// This module contains the implementation of the `Attack` action for entities in the game.
+/// The `Attack` action allows an entity to attack another entity, dealing damage to it.
+///
+/// The `Attack` action is implemented as a struct that implements the `Action` trait.
+/// It takes a target entity as a parameter and returns a `ActionResult` indicating whether the attack was successful or not.
+///
+/// The `Attack` action can be used by any entity that has the ability to attack, such as a player or a monster.
 #[derive(Debug)]
 pub struct AttackAction<T: Tile> {
     pub damage: i32,

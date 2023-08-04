@@ -65,6 +65,9 @@ impl<T: Tile> Map<T> {
                 MapCommand::SetVisible(pos, visible) => {
                     self.set_visible(pos.x(), pos.y(), *visible);
                 }
+                MapCommand::AddItem(pos, item) => {
+                    self.add_item(pos.x(), pos.y(), *item);
+                }
             }
         }
         self.commands.borrow_mut().clear();
@@ -129,9 +132,64 @@ impl<T: Tile> Map<T> {
         }
     }
 
+    fn add_item(&self, x: i32, y: i32, item: crate::world::ItemKey) {
+        if let Some(tile) = self.grid.borrow_mut().at_mut(IntVector2::new(x, y)) {
+            tile.add_item(item);
+        }
+    }
+
+    pub fn iter_over_visible_tiles<'a>(
+        &'a self,
+        extent: &'a IntExtent2D,
+    ) -> MapVisibleTilesIter<T> {
+        MapVisibleTilesIter::new(self, extent)
+    }
+
     // pub fn fov_iter(&self, center: IntVector2, radius: i32) -> MapFovIter<T> {
     //     MapFovIter::new(self, center, radius)
     // }
+}
+
+pub struct MapVisibleTilesIter<'a, T: Tile> {
+    map: &'a Map<T>,
+    extent: &'a IntExtent2D,
+    current: IntVector2,
+}
+
+impl<'a, T: Tile> MapVisibleTilesIter<'a, T> {
+    pub fn new(map: &'a Map<T>, extent: &'a IntExtent2D) -> Self {
+        Self {
+            map,
+            extent,
+            current: IntVector2::new(extent.left(), extent.top()),
+        }
+    }
+}
+
+impl<'a, T: Tile> Iterator for MapVisibleTilesIter<'a, T> {
+    type Item = (IntVector2, T);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current.y() >= self.extent.bottom() {
+            return None;
+        }
+
+        let result = self.current;
+
+        self.current = IntVector2::new(self.current.x() + 1, self.current.y());
+
+        if self.current.x() >= self.extent.right() {
+            self.current = IntVector2::new(self.extent.left(), self.current.y() + 1);
+        }
+
+        if let Some(tile) = self.map.get(result.x(), result.y()) {
+            // if tile.is_visible() {
+            return Some((result, tile));
+            // }
+        }
+
+        self.next()
+    }
 }
 
 #[cfg(test)]
@@ -148,6 +206,7 @@ mod tests {
     impl Visited for TestTile {}
     impl FovOccluder for TestTile {}
     impl Walkable for TestTile {}
+    impl ItemContainer for TestTile {}
 
     #[test]
     fn test_map() {

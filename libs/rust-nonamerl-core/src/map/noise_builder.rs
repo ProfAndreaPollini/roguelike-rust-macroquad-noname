@@ -49,7 +49,9 @@ mod tests {
 
     use noise::{Fbm, Perlin};
 
-    use crate::{map, Dimension2D, FovOccluder, IntExtent2D, Visible, Visited, Walkable};
+    use crate::{
+        map, Dimension2D, FovOccluder, IntExtent2D, ItemContainer, Visible, Visited, Walkable,
+    };
 
     use super::*;
 
@@ -60,6 +62,7 @@ mod tests {
     impl Visited for TestTile {}
     impl FovOccluder for TestTile {}
     impl Walkable for TestTile {}
+    impl ItemContainer for TestTile {}
 
     #[test]
     fn test_map_builder() {

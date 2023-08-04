@@ -10,7 +10,7 @@ pub trait Action<T: Tile> {
 pub struct DummyAction {}
 
 impl<T: Tile> Action<T> for DummyAction {
-    fn perform(&self, _world: &World<T>, map: &mut Map<T>) {
+    fn perform(&self, _world: &World<T>, _map: &mut Map<T>) {
         println!("Dummy action");
     }
 }

@@ -1,9 +1,10 @@
-use crate::{IntVector2, Map, Tile, Vec2};
+use crate::{world::ItemKey, IntVector2, Map, Tile, Vec2};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MapCommand {
     SetVisited(IntVector2, bool),
     SetVisible(IntVector2, bool),
+    AddItem(IntVector2, ItemKey),
 }
 
 #[derive(Debug, Clone)]
@@ -42,6 +43,9 @@ impl MapCommands {
                 }
                 MapCommand::SetVisible(pos, visible) => {
                     map.set_visible(pos.x(), pos.y(), *visible);
+                }
+                MapCommand::AddItem(pos, item) => {
+                    map.add_item(pos.x(), pos.y(), *item);
                 }
             }
         }

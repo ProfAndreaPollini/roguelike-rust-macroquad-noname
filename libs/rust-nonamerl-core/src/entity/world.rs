@@ -118,6 +118,12 @@ impl<T: Tile> World<T> {
     // }
 }
 
+impl<T: Tile> Default for World<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // #[cfg(test)]
 
 // mod tests {

@@ -84,4 +84,42 @@ impl IntExtent2D {
     pub fn contains(&self, x: i32, y: i32) -> bool {
         x >= self.left() && x < self.right() && y >= self.top() && y < self.bottom()
     }
+
+    pub fn iter(&self) -> IntExtent2DIterator {
+        IntExtent2DIterator::new(self)
+    }
+}
+
+pub struct IntExtent2DIterator<'a> {
+    extent: &'a IntExtent2D,
+    current: IntVector2,
+}
+
+impl<'a> IntExtent2DIterator<'a> {
+    pub fn new(extent: &'a IntExtent2D) -> Self {
+        Self {
+            extent,
+            current: extent.0,
+        }
+    }
+}
+
+impl<'a> Iterator for IntExtent2DIterator<'a> {
+    type Item = IntVector2;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current.y() >= self.extent.bottom() {
+            return None;
+        }
+
+        let result = self.current;
+
+        self.current = IntVector2::new(self.current.x() + 1, self.current.y());
+
+        if self.current.x() >= self.extent.right() {
+            self.current = IntVector2::new(self.extent.left(), self.current.y() + 1);
+        }
+
+        Some(result)
+    }
 }

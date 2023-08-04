@@ -1,11 +1,13 @@
 #![allow(dead_code)]
 use crate::{
     entity::world::{EntityKey, World},
-    property::{self, Property},
+    property::Property,
     IntVector2, Map, Tile, Vec2,
 };
 
 use super::Action;
+
+/// Moves the target entity by the given delta.
 #[derive(Debug)]
 pub struct MoveAction<T: Tile> {
     pub dx: IntVector2,
@@ -23,7 +25,30 @@ impl<T: Tile> MoveAction<T> {
     }
 }
 
+/// Moves the target entity by the given delta.
 impl<T: Tile> Action<T> for MoveAction<T> {
+    /// Moves the target entity by the given delta.
+    ///
+    /// If the target entity does not have a position property, this function panics.
+    ///
+    /// If the target entity is not found, this function panics.
+    ///
+    /// If the target entity is not on a walkable tile, it is not moved.
+    ///
+    /// # Arguments
+    ///
+    /// * `world` - The world to update.
+    ///
+    /// * `map` - The map to update.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the target entity does not have a position property.
+    ///
+    /// This function panics if the target entity is not found.
+    ///
+    /// This function panics if the target entity is not on a walkable tile.
+    ///
     fn perform(&self, world: &World<T>, map: &mut Map<T>) {
         if self.target == Default::default() {
             panic!("Target not set");
@@ -46,16 +71,6 @@ impl<T: Tile> Action<T> for MoveAction<T> {
                     *pos.y_mut() = pos.y() + self.dx.y();
                 }
             }
-
-            // *pos.x_mut() = pos.x() + self.dx.x();
-            // *pos.y_mut() = pos.y() + self.dx.y();
         }
-        // let position = property.downcast_ref::<property::Position>().unwrap();
-
-        // if let Some(Property::Position(pos)) =
-        //     entities.unwrap().get_property_mut(Property::POSITION)
-        // {
-        //     *pos.x_mut() = pos.x() + self.dx.x();
-        // }
     }
 }

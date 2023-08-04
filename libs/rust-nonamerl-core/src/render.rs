@@ -108,6 +108,15 @@ impl Renderer {
                             );
                         }
                     };
+
+                    if !tile.items().is_empty() {
+                        draw_text_ex(
+                            &format!("{}", tile.items().len()),
+                            viewport_x,
+                            viewport_y,
+                            Default::default(),
+                        );
+                    }
                     // if !tile.is_visited() {
                     //     draw_rectangle(
                     //         viewport_x,
@@ -199,7 +208,7 @@ impl Renderer {
 
 mod tests {
 
-    use crate::{FovOccluder, IntExtent2D, Map, Visible, Visited, Walkable};
+    use crate::{FovOccluder, IntExtent2D, ItemContainer, Map, Visible, Visited, Walkable};
 
     use super::*;
 
@@ -210,6 +219,7 @@ mod tests {
     impl Visited for TestTile {}
     impl FovOccluder for TestTile {}
     impl Walkable for TestTile {}
+    impl ItemContainer for TestTile {}
 
     #[test]
     fn test_renderer() {

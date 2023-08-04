@@ -29,12 +29,11 @@ use super::{
 //     }
 // }
 
-pub type AttackActivateFn<T: Tile> =
+pub type AttackActivateFn<T> =
     fn(ItemKey, EntityKey, &World<T>, EntityKey) -> Option<Box<dyn Action<T>>>;
-pub type DefenseActivateFn<T: Tile> =
-    fn(ItemKey, EntityKey, &World<T>) -> Option<Box<dyn Action<T>>>;
-pub type PickActivateFn<T: Tile> = fn(ItemKey, EntityKey, &World<T>) -> Option<Box<dyn Action<T>>>;
-pub type DrinkActivateFn<T: Tile> = fn(ItemKey, EntityKey, &World<T>) -> Option<Box<dyn Action<T>>>;
+pub type DefenseActivateFn<T> = fn(ItemKey, EntityKey, &World<T>) -> Option<Box<dyn Action<T>>>;
+pub type PickActivateFn<T> = fn(ItemKey, EntityKey, &World<T>) -> Option<Box<dyn Action<T>>>;
+pub type DrinkActivateFn<T> = fn(ItemKey, EntityKey, &World<T>) -> Option<Box<dyn Action<T>>>;
 
 #[derive(Debug, Clone)]
 pub enum UseKind<T: Tile> {

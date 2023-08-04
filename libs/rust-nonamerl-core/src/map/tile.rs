@@ -2,6 +2,8 @@ use std::fmt::Debug;
 
 use macroquad::{prelude::Color, texture::Texture2D};
 
+use crate::world::ItemKey;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum TileSpriteInfo {
     SpriteSheet(&'static str),
@@ -10,7 +12,9 @@ pub enum TileSpriteInfo {
     None,
 }
 
-pub trait Tile: 'static + Debug + Clone + Visible + Visited + FovOccluder + Walkable {
+pub trait Tile:
+    'static + Debug + Clone + Visible + Visited + FovOccluder + Walkable + ItemContainer
+{
     fn sprite_info(&self) -> TileSpriteInfo {
         TileSpriteInfo::None
     }
@@ -66,4 +70,12 @@ pub trait Walkable {
     fn is_walkable(&self) -> bool {
         true
     }
+}
+
+pub trait ItemContainer {
+    fn items(&self) -> &[ItemKey] {
+        &[]
+    }
+    fn add_item(&mut self, _item: ItemKey) {}
+    fn remove_item(&mut self, _item: ItemKey) {}
 }

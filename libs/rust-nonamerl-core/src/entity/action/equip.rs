@@ -9,6 +9,10 @@ use crate::{
 
 use super::Action;
 
+/// Equips the target entity with the given item.
+/// The item must be in the inventory of the target entity.
+/// The item must be equippable.
+/// The target entity must not already be equipped with an item of the same type.
 #[derive(Debug, Clone, Copy)]
 pub struct EquipAction<T: Tile> {
     pub item: ItemKey,
