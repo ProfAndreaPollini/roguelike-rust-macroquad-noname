@@ -15,79 +15,20 @@ mod noise_builder;
 mod random_walk_builder;
 mod room;
 mod room_builder;
-
-pub use commands::*;
-pub use fov::*;
-pub use random_walk_builder::RandomWalkBuilder;
-pub use room::*;
-pub use room_builder::*;
+mod tile;
 
 pub use builder::{MapBuilder, MapBuilderAlgorithm};
+pub use commands::*;
+pub use fov::*;
 use macroquad::{
     prelude::{Color, Rect},
     texture::Texture2D,
 };
 pub use noise_builder::BuilderAlgoWithNoise;
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum TileSpriteInfo {
-    SpriteSheet(&'static str),
-    SingleSprite(Texture2D),
-    Fill(Color),
-    None,
-}
-
-pub trait Tile: 'static + Debug + Clone + Visible + Visited + FovOccluder {
-    fn sprite_info(&self) -> TileSpriteInfo {
-        TileSpriteInfo::None
-    }
-}
-
-#[repr(transparent)]
-#[derive(PartialEq)]
-pub struct VisibilityOcclusion(f32);
-
-impl VisibilityOcclusion {
-    pub fn new(v: f32) -> Option<Self> {
-        if (0.0..=1.0).contains(&v) {
-            Some(Self(v))
-        } else {
-            None
-        }
-    }
-
-    pub unsafe fn new_unchecked(v: f32) -> Self {
-        Self(v)
-    }
-}
-
-impl From<VisibilityOcclusion> for f32 {
-    fn from(v: VisibilityOcclusion) -> Self {
-        v.0
-    }
-}
-
-pub trait FovOccluder {
-    const BLOCKED: VisibilityOcclusion = VisibilityOcclusion(0.);
-    const VISIBLE: VisibilityOcclusion = VisibilityOcclusion(1.);
-    fn block_visibility(&self) -> VisibilityOcclusion {
-        Self::VISIBLE
-    }
-}
-
-pub trait Visible {
-    fn is_visible(&self) -> bool {
-        true
-    }
-    fn set_visible(&mut self, visible: bool) {}
-}
-
-pub trait Visited {
-    fn is_visited(&self) -> bool {
-        false
-    }
-    fn set_visited(&mut self, visited: bool) {}
-}
+pub use random_walk_builder::RandomWalkBuilder;
+pub use room::*;
+pub use room_builder::*;
+pub use tile::*;
 
 #[derive(Clone, Debug)]
 pub struct Map<T: Tile> {
@@ -206,6 +147,7 @@ mod tests {
     impl Visible for TestTile {}
     impl Visited for TestTile {}
     impl FovOccluder for TestTile {}
+    impl Walkable for TestTile {}
 
     #[test]
     fn test_map() {

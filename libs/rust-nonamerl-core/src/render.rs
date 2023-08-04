@@ -199,7 +199,7 @@ impl Renderer {
 
 mod tests {
 
-    use crate::{FovOccluder, IntExtent2D, Map, Visible, Visited};
+    use crate::{FovOccluder, IntExtent2D, Map, Visible, Visited, Walkable};
 
     use super::*;
 
@@ -209,6 +209,7 @@ mod tests {
     impl Visible for TestTile {}
     impl Visited for TestTile {}
     impl FovOccluder for TestTile {}
+    impl Walkable for TestTile {}
 
     #[test]
     fn test_renderer() {

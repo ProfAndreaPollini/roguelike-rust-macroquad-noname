@@ -92,7 +92,7 @@ impl<T: Tile> MapBuilderAlgorithm<T> for FillWithFloorBuilderAlgo<T> {
 
 mod tests {
 
-    use crate::{FovOccluder, Visible, Visited};
+    use crate::{FovOccluder, Visible, Visited, Walkable};
 
     use super::*;
 
@@ -102,6 +102,8 @@ mod tests {
     impl Visible for TestTile {}
     impl Visited for TestTile {}
     impl FovOccluder for TestTile {}
+    impl Walkable for TestTile {}
+
     #[test]
     fn test_map_builder() {
         let mut map_builder =

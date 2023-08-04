@@ -11,7 +11,7 @@ use rust_nonamerl_core::{
     Action, ActionQueue, AddSpriteOptions, BuilderAlgoWithNoise, Camera, Camera2D, Dimension2,
     Dimension2D, FovOccluder, IntExtent2D, IntVector2, Map, MapBuilder, MapCommand, MapCommands,
     MoveAction, RandomWalkBuilder, RenderOp, Renderer, RoomBuilder, SpriteSheet, Tile,
-    TileSpriteInfo, Vec2, Viewport, VisibilityOcclusion, Visible, Visited,
+    TileSpriteInfo, Vec2, Viewport, VisibilityOcclusion, Visible, Visited, Walkable,
 };
 
 fn window_conf() -> Conf {
@@ -86,6 +86,11 @@ impl Visited for TestTile {
     }
 }
 impl FovOccluder for TestTile {}
+impl Walkable for TestTile {
+    fn is_walkable(&self) -> bool {
+        self.kind != TileKind::Wall
+    }
+}
 
 fn create_player<T: Tile>(world: &mut World<T>, pos: IntVector2) -> EntityKey {
     let mut entities = world.entities.borrow_mut();
@@ -411,7 +416,7 @@ async fn main() {
                             let (p, tile) = tile;
                             // print!("p: {:?}, ", p);
                             if current_fov_cells.contains(p) {
-                                println!("cell already in fov");
+                                // println!("cell already in fov");
                                 continue;
                             }
 
@@ -529,28 +534,28 @@ async fn main() {
         //     },
         // );
 
-        for i in 0..10 {
-            for j in 0..10 {
-                let coords = map.coords_of_cell(i, j).unwrap();
-                let (x, y) =
-                    camera.world_to_viewport(coords.x() as f32, coords.y() as f32, &viewport);
+        // for i in 0..10 {
+        //     for j in 0..10 {
+        //         let coords = map.coords_of_cell(i, j).unwrap();
+        //         let (x, y) =
+        //             camera.world_to_viewport(coords.x() as f32, coords.y() as f32, &viewport);
 
-                draw_rectangle(
-                    x,
-                    y,
-                    24. / camera.zoom_scale,
-                    24. / camera.zoom_scale,
-                    Color {
-                        r: (i as f32 + 1.) / 10.,
-                        g: (j as f32 + 1.) / 10.,
-                        b: 0.,
-                        a: 0.6,
-                    },
-                );
-            }
-        }
+        //         draw_rectangle(
+        //             x,
+        //             y,
+        //             24. / camera.zoom_scale,
+        //             24. / camera.zoom_scale,
+        //             Color {
+        //                 r: (i as f32 + 1.) / 10.,
+        //                 g: (j as f32 + 1.) / 10.,
+        //                 b: 0.,
+        //                 a: 0.6,
+        //             },
+        //         );
+        //     }
+        // }
 
-        renderer.batch_render(&camera, &viewport, &sprites, &draw_ops);
+        // renderer.batch_render(&camera, &viewport, &sprites, &draw_ops);
 
         draw_texture_ex(
             texture,

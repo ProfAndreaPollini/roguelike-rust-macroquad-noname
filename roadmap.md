@@ -1,0 +1,2 @@
+
+- [ ] entity map collision

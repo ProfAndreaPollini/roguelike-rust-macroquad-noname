@@ -24,7 +24,7 @@ impl<T: Tile> MoveAction<T> {
 }
 
 impl<T: Tile> Action<T> for MoveAction<T> {
-    fn perform(&self, world: &World<T>, _map: &mut Map<T>) {
+    fn perform(&self, world: &World<T>, map: &mut Map<T>) {
         if self.target == Default::default() {
             panic!("Target not set");
         }
@@ -38,8 +38,17 @@ impl<T: Tile> Action<T> for MoveAction<T> {
         }
 
         if let Some(Property::Position(pos)) = property {
-            *pos.x_mut() = pos.x() + self.dx.x();
-            *pos.y_mut() = pos.y() + self.dx.y();
+            let desired_pos = IntVector2::new(pos.x() + self.dx.x(), pos.y() + self.dx.y());
+
+            if let Some(tile) = map.get(desired_pos.x(), desired_pos.y()) {
+                if tile.is_walkable() {
+                    *pos.x_mut() = pos.x() + self.dx.x();
+                    *pos.y_mut() = pos.y() + self.dx.y();
+                }
+            }
+
+            // *pos.x_mut() = pos.x() + self.dx.x();
+            // *pos.y_mut() = pos.y() + self.dx.y();
         }
         // let position = property.downcast_ref::<property::Position>().unwrap();
 
